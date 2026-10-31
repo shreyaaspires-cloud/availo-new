@@ -16,7 +16,7 @@ import { Modal } from '@/components/ui/Modal';
 
 export default function AdminPage() {
   const bookings = useAppStore((s) => s.bookings);
-  const currentUser = useAppStore((s) => s.currentUser);
+  const allUsers = useAppStore((s) => s.allUsers);
   const approveBooking = useAppStore((s) => s.approveBooking);
   const rejectBooking = useAppStore((s) => s.rejectBooking);
   const waitlistBooking = useAppStore((s) => s.waitlistBooking);
@@ -25,12 +25,12 @@ export default function AdminPage() {
   const pendingBookings = bookings.filter((b) => b.status === 'PENDING');
   const waitlistedBookings = bookings.filter((b) => b.status === 'WAITLISTED');
 
-  // Reject Modal
   const [rejectModalBkId, setRejectModalBkId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('Slot conflict with scheduled lab calibration.');
 
-  // Grant Cert Modal
+  // Grant Cert Modal with Target Student Selection (BUG-07 Fix)
   const [isCertModalOpen, setIsCertModalOpen] = useState(false);
+  const [targetUserId, setTargetUserId] = useState(allUsers[0]?.id || 'user-maya-lin');
   const [selectedCert, setSelectedCert] = useState('ALL_ACCESS_SUPERVISOR');
 
   const availableCerts = [
@@ -43,8 +43,10 @@ export default function AdminPage() {
   ];
 
   const handleGrantCert = () => {
-    const updated = Array.from(new Set([...currentUser.qualifications, selectedCert]));
-    updateUserQualifications(currentUser.id, updated);
+    const target = allUsers.find((u) => u.id === targetUserId);
+    if (!target) return;
+    const updated = Array.from(new Set([...target.qualifications, selectedCert]));
+    updateUserQualifications(targetUserId, updated);
     setIsCertModalOpen(false);
   };
 
@@ -60,7 +62,7 @@ export default function AdminPage() {
             <Badge variant="purple">ADMIN PRIVILEGE</Badge>
           </div>
           <p className="text-sm text-gray-500 mt-1">
-            Requisition review, waitlist arbitration, and qualification badge management
+            Requisition review, waitlist arbitration, and student qualification badge management
           </p>
         </div>
 
@@ -118,7 +120,7 @@ export default function AdminPage() {
               <div className="flex items-center justify-end gap-2 pt-2">
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => waitlistBooking(b.id)}
                   icon={<Clock className="w-3.5 h-3.5 mr-1" />}
                 >
@@ -197,7 +199,7 @@ export default function AdminPage() {
           </div>
 
           <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
-            <Button variant="outline" size="sm" onClick={() => setRejectModalBkId(null)}>
+            <Button variant="ghost" size="sm" onClick={() => setRejectModalBkId(null)}>
               Cancel
             </Button>
             <Button
@@ -216,14 +218,31 @@ export default function AdminPage() {
         </div>
       </Modal>
 
-      {/* Grant Qualification Modal */}
+      {/* Grant Qualification Modal with Target User Selection */}
       <Modal
         isOpen={isCertModalOpen}
         onClose={() => setIsCertModalOpen(false)}
         title="Grant Safety Certification"
-        subtitle="Endorse user qualifications for specialized equipment clearance"
+        subtitle="Endorse researcher/student qualifications for specialized equipment clearance"
       >
         <div className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-gray-700">
+              Target Student / Researcher
+            </label>
+            <select
+              value={targetUserId}
+              onChange={(e) => setTargetUserId(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm"
+            >
+              {allUsers.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} — {u.department} ({u.role})
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="space-y-1.5">
             <label className="block text-sm font-medium text-gray-700">
               Select Safety Credential
@@ -242,7 +261,7 @@ export default function AdminPage() {
           </div>
 
           <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
-            <Button variant="outline" size="sm" onClick={() => setIsCertModalOpen(false)}>
+            <Button variant="ghost" size="sm" onClick={() => setIsCertModalOpen(false)}>
               Cancel
             </Button>
             <Button size="sm" onClick={handleGrantCert}>

@@ -27,8 +27,8 @@ export function ResourcesPage() {
 
   // Booking Modal State
   const [bookingModalRes, setBookingModalRes] = useState<Resource | null>(null);
-  const [startDate, setStartDate] = useState('2026-11-03T10:00');
-  const [endDate, setEndDate] = useState('2026-11-03T13:00');
+  const [startDate, setStartDate] = useState(() => new Date(Date.now() + 86400000).toISOString().slice(0, 16));
+  const [endDate, setEndDate] = useState(() => new Date(Date.now() + 86400000 + 3600000 * 3).toISOString().slice(0, 16));
   const [purpose, setPurpose] = useState('');
 
   // Add Resource Modal State (Admin only)
@@ -141,7 +141,7 @@ export function ResourcesPage() {
                   : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
               }`}
             >
-              {cat.replace('_', ' ')}
+              {cat.split('_').join(' ')}
             </button>
           ))}
         </div>
@@ -182,7 +182,7 @@ export function ResourcesPage() {
                   </div>
                   <div className="absolute bottom-3 left-3">
                     <span className="font-mono text-[10px] bg-gray-900/80 backdrop-blur-xs text-white px-2 py-0.5 rounded-md uppercase font-semibold">
-                      {res.category.replace('_', ' ')}
+                      {res.category.split('_').join(' ')}
                     </span>
                   </div>
                 </div>
@@ -238,7 +238,7 @@ export function ResourcesPage() {
                 <Button
                   className="w-full"
                   size="sm"
-                  variant={isEligible ? 'primary' : 'outline'}
+                  variant={isEligible ? 'primary' : 'ghost'}
                   disabled={!isEligible}
                   onClick={() => setBookingModalRes(res)}
                   icon={<CalendarPlus className="w-4 h-4 mr-1" />}
@@ -301,7 +301,7 @@ export function ResourcesPage() {
             <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => setBookingModalRes(null)}
               >
@@ -375,7 +375,7 @@ export function ResourcesPage() {
           <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => setIsAddModalOpen(false)}
             >

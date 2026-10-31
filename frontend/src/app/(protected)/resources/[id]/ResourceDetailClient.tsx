@@ -96,7 +96,7 @@ export function ResourceDetailClient({ resource }: { resource: Resource }) {
 
             <Button
               size="lg"
-              variant={isEligible ? 'primary' : 'outline'}
+              variant={isEligible ? 'primary' : 'ghost'}
               disabled={!isEligible}
               onClick={() => setIsBookingOpen(true)}
               icon={<CalendarPlus className="w-5 h-5 mr-1" />}
@@ -199,7 +199,7 @@ export function ResourceDetailClient({ resource }: { resource: Resource }) {
           <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => setIsBookingOpen(false)}
             >

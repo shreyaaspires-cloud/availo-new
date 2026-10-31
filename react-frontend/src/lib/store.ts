@@ -5,6 +5,7 @@ import { DEMO_USERS, INITIAL_RESOURCES, INITIAL_BOOKINGS, INITIAL_INCIDENTS, INI
 interface AppState {
   // Auth state
   currentUser: User;
+  allUsers: User[];
   switchUser: (role: 'USER' | 'ADMIN') => void;
   updateUserQualifications: (userId: string, newCerts: string[]) => void;
   
@@ -51,6 +52,7 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set, get) => ({
   currentUser: DEMO_USERS.USER,
+  allUsers: Object.values(DEMO_USERS),
   resources: INITIAL_RESOURCES,
   bookings: INITIAL_BOOKINGS,
   incidents: INITIAL_INCIDENTS,
@@ -74,18 +76,24 @@ export const useAppStore = create<AppState>((set, get) => ({
   updateUserQualifications: (userId, newCerts) => {
     set((state) => {
       const isCurrent = state.currentUser.id === userId;
+
       return {
         currentUser: isCurrent
           ? { ...state.currentUser, qualifications: newCerts }
           : state.currentUser,
+        allUsers: state.allUsers.map((u) =>
+          u.id === userId ? { ...u, qualifications: newCerts } : u
+        ),
       };
     });
+    const targetUser = get().allUsers.find((u) => u.id === userId);
+    const targetName = targetUser ? targetUser.name : 'Target User';
     get().addAuditLog(
       'QUALIFICATION_UPDATED',
-      `Granted certification privileges: ${newCerts.join(', ')}`,
+      `Granted certification privileges for ${targetName}: ${newCerts.join(', ')}`,
       'User Credential Engine'
     );
-    get().showToast('User credentials and certifications successfully updated.');
+    get().showToast(`Credentials updated for ${targetName}: ${newCerts.join(', ')}`);
   },
 
   addResource: (newResData) => {
@@ -108,7 +116,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       return { success: false, message: 'Resource not found' };
     }
 
-    // Step 2 Automated Eligibility Check
     const hasCerts = resource.requiredQualifications.every((cert) =>
       user.qualifications.includes(cert)
     );
@@ -121,7 +128,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       };
     }
 
-    // Calculate booking duration hours
     const start = new Date(data.startTime).getTime();
     const end = new Date(data.endTime).getTime();
     const hours = Math.max(1, Math.round((end - start) / (1000 * 60 * 60)));
@@ -134,7 +140,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       };
     }
 
-    // Calculate fair access score based on trust score and remaining capacity
     const fairAccessScore = Math.min(
       99,
       Math.round(user.trustScore * 0.7 + ((user.maxWeeklyHours - user.weeklyUsedHours) / user.maxWeeklyHours) * 30)
@@ -269,7 +274,6 @@ export const useAppStore = create<AppState>((set, get) => ({
             }
           : item
       ),
-      // Update resource state if damaged
       resources: state.resources.map((r) =>
         b && r.id === b.resourceId ? { ...r, currentCondition: condition } : r
       ),
@@ -351,4 +355,3 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((state) => ({ auditLogs: [newLog, ...state.auditLogs] }));
   },
 }));
-

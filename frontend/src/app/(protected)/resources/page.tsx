@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
+import Link from 'next/link';
 
 export default function ResourcesPage() {
   const resources = useAppStore((s) => s.resources);
@@ -25,10 +26,10 @@ export default function ResourcesPage() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
-  // Booking Modal State
+  // Dynamic booking date initialization (BUG-10 Fix) - lazy initializer to maintain React purity
   const [bookingModalRes, setBookingModalRes] = useState<Resource | null>(null);
-  const [startDate, setStartDate] = useState('2026-11-03T10:00');
-  const [endDate, setEndDate] = useState('2026-11-03T13:00');
+  const [startDate, setStartDate] = useState(() => new Date(Date.now() + 86400000).toISOString().slice(0, 16));
+  const [endDate, setEndDate] = useState(() => new Date(Date.now() + 86400000 + 3600000 * 3).toISOString().slice(0, 16));
   const [purpose, setPurpose] = useState('');
 
   // Add Resource Modal State (Admin only)
@@ -39,12 +40,15 @@ export default function ResourcesPage() {
   const [newResLocation, setNewResLocation] = useState('');
   const [newResCerts, setNewResCerts] = useState('LASER_SAFETY_L1');
 
+  // 6 full categories including Microscopy Suite and Cleanroom Equipment (BUG-08 Fix)
   const categories = [
     'ALL',
     'MAKERSPACE_TOOL',
     'LABORATORY',
     'TESTING_DEVICE',
     'COMPUTE_WORKSTATION',
+    'MICROSCOPY_SUITE',
+    'CLEANROOM_EQUIPMENT',
   ];
 
   const filteredResources = resources.filter((res) => {
@@ -145,7 +149,7 @@ export default function ResourcesPage() {
                   : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
               }`}
             >
-              {cat.replace('_', ' ')}
+              {cat.split('_').join(' ')}
             </button>
           ))}
         </div>
@@ -154,7 +158,6 @@ export default function ResourcesPage() {
       {/* Resource Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredResources.map((res) => {
-          // Check if current user meets requirements
           const isEligible = res.requiredQualifications.every((req) =>
             currentUser.qualifications.includes(req)
           );
@@ -163,7 +166,7 @@ export default function ResourcesPage() {
             <Card key={res.id} padding="none" hoverEffect className="overflow-hidden flex flex-col justify-between">
               <div>
                 {/* Image & Condition Tag */}
-                <div className="relative h-44 bg-gray-100 overflow-hidden">
+                <Link href={`/resources/${res.id}`} className="block relative h-44 bg-gray-100 overflow-hidden">
                   <img
                     src={res.imageUrl}
                     alt={res.name}
@@ -186,17 +189,19 @@ export default function ResourcesPage() {
                   </div>
                   <div className="absolute bottom-3 left-3">
                     <span className="font-mono text-[10px] bg-gray-900/80 backdrop-blur-xs text-white px-2 py-0.5 rounded-md uppercase font-semibold">
-                      {res.category.replace('_', ' ')}
+                      {res.category.split('_').join(' ')}
                     </span>
                   </div>
-                </div>
+                </Link>
 
                 {/* Details */}
                 <div className="p-5 space-y-3">
                   <div>
-                    <h3 className="font-bold text-base text-gray-900 leading-snug">
-                      {res.name}
-                    </h3>
+                    <Link href={`/resources/${res.id}`}>
+                      <h3 className="font-bold text-base text-gray-900 leading-snug hover:text-blue-600 transition-colors">
+                        {res.name}
+                      </h3>
+                    </Link>
                     <p className="text-xs text-gray-500 mt-1">{res.location}</p>
                   </div>
 
@@ -242,7 +247,7 @@ export default function ResourcesPage() {
                 <Button
                   className="w-full"
                   size="sm"
-                  variant={isEligible ? 'primary' : 'outline'}
+                  variant={isEligible ? 'primary' : 'ghost'}
                   disabled={!isEligible}
                   onClick={() => setBookingModalRes(res)}
                   icon={<CalendarPlus className="w-4 h-4 mr-1" />}
@@ -306,7 +311,7 @@ export default function ResourcesPage() {
             <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => setBookingModalRes(null)}
               >
@@ -343,10 +348,12 @@ export default function ResourcesPage() {
               onChange={(e) => setNewResCategory(e.target.value as ResourceCategory)}
               className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm"
             >
-              <option value="MAKERSPACE_TOOL">MAKERSPACE_TOOL</option>
+              <option value="MAKERSPACE_TOOL">MAKERSPACE TOOL</option>
               <option value="LABORATORY">LABORATORY</option>
-              <option value="TESTING_DEVICE">TESTING_DEVICE</option>
-              <option value="COMPUTE_WORKSTATION">COMPUTE_WORKSTATION</option>
+              <option value="TESTING_DEVICE">TESTING DEVICE</option>
+              <option value="COMPUTE_WORKSTATION">COMPUTE WORKSTATION</option>
+              <option value="MICROSCOPY_SUITE">MICROSCOPY SUITE</option>
+              <option value="CLEANROOM_EQUIPMENT">CLEANROOM EQUIPMENT</option>
             </select>
           </div>
 
@@ -381,7 +388,7 @@ export default function ResourcesPage() {
           <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => setIsAddModalOpen(false)}
             >

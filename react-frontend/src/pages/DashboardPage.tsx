@@ -52,7 +52,7 @@ export function DashboardPage() {
             </Button>
           </Link>
           <Link to="/bookings">
-            <Button variant="outline" size="sm" icon={<CalendarCheck className="w-4 h-4 mr-1" />}>
+            <Button variant="ghost" size="sm" icon={<CalendarCheck className="w-4 h-4 mr-1" />}>
               View Custody Lifecycle
             </Button>
           </Link>
@@ -157,7 +157,7 @@ export function DashboardPage() {
           </div>
           <Link to="/bookings">
             <Button
-              variant="outline"
+              variant="ghost"
               size="md"
               className="bg-white text-blue-900 hover:bg-blue-50 border-transparent font-bold shrink-0"
             >
@@ -204,7 +204,7 @@ export function DashboardPage() {
                 </div>
 
                 <Link to="/bookings">
-                  <Button variant="outline" size="sm">
+                  <Button variant="ghost" size="sm">
                     Track
                   </Button>
                 </Link>

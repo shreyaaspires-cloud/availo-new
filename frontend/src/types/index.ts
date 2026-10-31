@@ -16,7 +16,9 @@ export type ResourceCategory =
   | 'MAKERSPACE_TOOL'
   | 'CAMERA_AV'
   | 'TESTING_DEVICE'
-  | 'COMPUTE_WORKSTATION';
+  | 'COMPUTE_WORKSTATION'
+  | 'MICROSCOPY_SUITE'
+  | 'CLEANROOM_EQUIPMENT';
 
 export type ConditionRating = 'EXCELLENT' | 'GOOD' | 'FAIR' | 'DAMAGED';
 
@@ -99,4 +101,3 @@ export interface AuditLog {
   details: string;
   hash: string;
 }
-

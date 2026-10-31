@@ -262,7 +262,7 @@ export default function BookingsPage() {
             <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => setCheckInModalBk(null)}
               >
@@ -337,7 +337,7 @@ export default function BookingsPage() {
             <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => setCheckOutModalBk(null)}
               >

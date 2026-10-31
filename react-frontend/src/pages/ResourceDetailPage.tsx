@@ -32,7 +32,7 @@ export function ResourceDetailPage() {
       <div className="p-8 text-center space-y-4">
         <h2 className="text-xl font-bold text-gray-900">Resource not found</h2>
         <Link to="/resources">
-          <Button variant="outline" size="sm">
+          <Button variant="ghost" size="sm">
             Back to Resources
           </Button>
         </Link>
@@ -92,7 +92,7 @@ export function ResourceDetailPage() {
           </div>
           <div className="absolute bottom-4 left-4">
             <span className="font-mono text-xs bg-gray-950/80 backdrop-blur-xs text-white px-3 py-1 rounded-lg uppercase font-semibold">
-              {resource.category.replace('_', ' ')}
+              {resource.category.split('_').join(' ')}
             </span>
           </div>
         </div>
@@ -109,7 +109,7 @@ export function ResourceDetailPage() {
 
             <Button
               size="lg"
-              variant={isEligible ? 'primary' : 'outline'}
+              variant={isEligible ? 'primary' : 'ghost'}
               disabled={!isEligible}
               onClick={() => setIsBookingOpen(true)}
               icon={<CalendarPlus className="w-5 h-5 mr-1" />}
@@ -209,7 +209,7 @@ export function ResourceDetailPage() {
           <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => setIsBookingOpen(false)}
             >

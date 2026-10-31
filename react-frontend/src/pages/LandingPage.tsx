@@ -49,7 +49,7 @@ export function LandingPage() {
 
           <div className="flex items-center gap-3">
             <Link to="/login">
-              <Button variant="outline" size="sm">
+              <Button variant="ghost" size="sm">
                 Sign In
               </Button>
             </Link>
@@ -89,7 +89,7 @@ export function LandingPage() {
             </Button>
           </Link>
           <Link to="/login">
-            <Button variant="outline" size="lg">
+            <Button variant="ghost" size="lg">
               Quick Demo Login
             </Button>
           </Link>

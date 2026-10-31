@@ -16,14 +16,7 @@ export function AIAuditPage() {
     divergenceMetric: string;
     maintenanceAction: string;
     fairnessPriorityReasoning: string;
-  } | null>({
-    discrepancyDetected: true,
-    confidenceScore: 98.4,
-    divergenceMetric: '0.14mm focal coating aberration on laser ZnSe optic',
-    maintenanceAction: 'Execute Protocol #AP-41: Ultrasonic optic solvent rinse before next session',
-    fairnessPriorityReasoning:
-      'Borrower Maya Lin granted higher allocation precedence over candidate David Kim due to zero prior overdue flags and 4.5h vs 9.2h rolling 7-day usage.',
-  });
+  } | null>(null);
 
   const runLiveAudit = () => {
     setAnalyzing(true);

@@ -18,14 +18,7 @@ export default function AIAuditPage() {
     divergenceMetric: string;
     maintenanceAction: string;
     fairnessPriorityReasoning: string;
-  } | null>({
-    discrepancyDetected: true,
-    confidenceScore: 98.4,
-    divergenceMetric: '0.14mm focal coating aberration on laser ZnSe optic',
-    maintenanceAction: 'Execute Protocol #AP-41: Ultrasonic optic solvent rinse before next session',
-    fairnessPriorityReasoning:
-      'Borrower Maya Lin granted higher allocation precedence over candidate David Kim due to zero prior overdue flags and 4.5h vs 9.2h rolling 7-day usage.',
-  });
+  } | null>(null);
 
   const runLiveAudit = () => {
     setAnalyzing(true);
@@ -114,19 +107,19 @@ export default function AIAuditPage() {
               <span className="font-bold text-xs text-gray-700 uppercase">
                 Step 8 Return Inspection Stream
               </span>
-              <span className="font-mono text-xs text-amber-600 font-bold">ANALYZED (11:45 AM)</span>
+              <span className="font-mono text-xs text-amber-600 font-bold">READY TO AUDIT</span>
             </div>
             <p className="text-xs text-gray-600">
-              Optical aperture shows particulate smear. Beam scattering divergence detected.
+              Return condition logged. Awaiting live comparison with pre-check baseline.
             </p>
             <div className="h-1.5 w-full bg-amber-100 rounded-full overflow-hidden">
-              <div className="h-full bg-amber-500 w-3/4 animate-pulse" />
+              <div className="h-full bg-amber-500 w-1/2" />
             </div>
           </div>
         </div>
 
         {/* AI Output Stream Box */}
-        {analysisResult && (
+        {analysisResult ? (
           <div className="p-5 rounded-xl bg-gray-950 text-gray-100 font-mono text-xs space-y-3">
             <div className="flex items-center justify-between border-b border-gray-800 pb-2">
               <span className="text-purple-400 font-bold flex items-center gap-1.5">
@@ -158,6 +151,10 @@ export default function AIAuditPage() {
                 <p className="text-gray-200">{analysisResult.fairnessPriorityReasoning}</p>
               </div>
             </div>
+          </div>
+        ) : (
+          <div className="p-6 rounded-xl bg-gray-50 border border-dashed border-gray-200 text-center text-xs text-gray-500 font-mono">
+            Click &quot;Run Live Condition Audit&quot; above to initiate Gemini 2.5 Flash condition discrepancy inspection.
           </div>
         )}
       </Card>

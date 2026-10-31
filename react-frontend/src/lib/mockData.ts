@@ -1,6 +1,6 @@
 import { User, Resource, Booking, Incident, AuditLog } from '@/types';
 
-export const DEMO_USERS: Record<'USER' | 'ADMIN', User> = {
+export const DEMO_USERS: Record<string, User> = {
   USER: {
     id: 'user-maya-lin',
     name: 'Maya Lin',
@@ -22,6 +22,28 @@ export const DEMO_USERS: Record<'USER' | 'ADMIN', User> = {
     trustScore: 100,
     weeklyUsedHours: 0,
     maxWeeklyHours: 40.0,
+  },
+  STUDENT_ELENA: {
+    id: 'user-elena-rostova',
+    name: 'Elena Rostova',
+    email: 'elena@university.edu',
+    department: 'Structural Biology Center',
+    role: 'USER',
+    qualifications: ['CLEANROOM_ISO5'],
+    trustScore: 95,
+    weeklyUsedHours: 3.0,
+    maxWeeklyHours: 12.0,
+  },
+  STUDENT_DAVID: {
+    id: 'user-david-kim',
+    name: 'David Kim',
+    email: 'david@university.edu',
+    department: 'Aerospace Engineering',
+    role: 'USER',
+    qualifications: ['CNC_CERT'],
+    trustScore: 89,
+    weeklyUsedHours: 6.0,
+    maxWeeklyHours: 12.0,
   },
 };
 
@@ -49,7 +71,7 @@ export const INITIAL_RESOURCES: Resource[] = [
   {
     id: 'res-cryo-em',
     name: 'Thermo Scientific Krios G4 Cryo-TEM',
-    category: 'LABORATORY',
+    category: 'MICROSCOPY_SUITE',
     description: 'State-of-the-art 300 kV transmission electron microscope optimized for high-resolution single-particle analysis of proteins.',
     location: 'Cryogenic Microscopy Suite — Room 102',
     imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDV_N2QdspAgVgO-0TLEOeoUz34uiCmBrWePzoJwZOfdRwce6SUzmOkkKJ00hlEY13LA5556s1dF-D_KIlndS4YtaBDdZClfMzs2B_HFhWxndqCWRtFujCvP7JV-Hc4HmF2FB91zXKbFnSa8iAEvExL9AfSvAMRL37vz7b6pOpYkFrLkwQiacTo0kJ1JgewKfkzb7aCC2b4-lNAqDTDOgwZE9_WuK_tM5NpD0Iow5MA',
@@ -103,6 +125,25 @@ export const INITIAL_RESOURCES: Resource[] = [
       'Working Area': '1000 x 610 mm',
       'Laser Power': '120 Watts',
       'Max Cutting Speed': '4.2 m/s',
+    },
+  },
+  {
+    id: 'res-cleanroom-bench',
+    name: 'Class 100 Laminar Flow Bench',
+    category: 'CLEANROOM_EQUIPMENT',
+    description: 'ISO Class 5 certified horizontal laminar flow clean workstation for sterile microfluidic assembly and wafer preparation.',
+    location: 'Nanotechnology Cleanroom — Bay C',
+    imageUrl: 'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&fit=crop&w=1000&q=80',
+    currentCondition: 'EXCELLENT',
+    requiredQualifications: ['CLEANROOM_ISO5'],
+    maxHoursPerWeek: 8,
+    isSupervised: true,
+    requiresDeposit: false,
+    isAvailable: true,
+    specs: {
+      'Airflow Velocity': '90 FPM ± 20%',
+      'HEPA Efficiency': '99.99% at 0.3 micron',
+      'Lighting': '500 Lux anti-glare cleanroom LED',
     },
   },
   {
@@ -181,7 +222,7 @@ export const INITIAL_BOOKINGS: Booking[] = [
     id: 'bk-103',
     resourceId: 'res-cryo-em',
     resourceName: 'Thermo Scientific Krios G4 Cryo-TEM',
-    category: 'LABORATORY',
+    category: 'MICROSCOPY_SUITE',
     userId: 'user-elena-rostova',
     userName: 'Elena Rostova',
     userDepartment: 'Structural Biology Center',
@@ -288,4 +329,3 @@ export const INITIAL_AUDIT_LOGS: AuditLog[] = [
     hash: '0x19f2a87d605c312b988f01bba2904c1e',
   },
 ];
-

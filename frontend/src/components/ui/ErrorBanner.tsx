@@ -19,7 +19,7 @@ export function ErrorBanner({ message, onRetry }: ErrorBannerProps) {
       </div>
       {onRetry && (
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
           onClick={onRetry}
           icon={<RotateCcw className="w-3.5 h-3.5 mr-1" />}

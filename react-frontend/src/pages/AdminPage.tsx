@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import {
   CheckCircle2,
@@ -19,6 +19,7 @@ export function AdminPage() {
   const rejectBooking = useAppStore((s) => s.rejectBooking);
   const waitlistBooking = useAppStore((s) => s.waitlistBooking);
   const updateUserQualifications = useAppStore((s) => s.updateUserQualifications);
+  const allUsers = useAppStore((s) => s.allUsers);
 
   const pendingBookings = bookings.filter((b) => b.status === 'PENDING');
   const waitlistedBookings = bookings.filter((b) => b.status === 'WAITLISTED');
@@ -28,6 +29,7 @@ export function AdminPage() {
 
   const [isCertModalOpen, setIsCertModalOpen] = useState(false);
   const [selectedCert, setSelectedCert] = useState('ALL_ACCESS_SUPERVISOR');
+  const [targetUserId, setTargetUserId] = useState('user-maya-lin');
 
   const availableCerts = [
     'LASER_SAFETY_L1',
@@ -111,7 +113,7 @@ export function AdminPage() {
               <div className="flex items-center justify-end gap-2 pt-2">
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => waitlistBooking(b.id)}
                   icon={<Clock className="w-3.5 h-3.5 mr-1" />}
                 >
@@ -188,7 +190,7 @@ export function AdminPage() {
           </div>
 
           <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
-            <Button variant="outline" size="sm" onClick={() => setRejectModalBkId(null)}>
+            <Button variant="ghost" size="sm" onClick={() => setRejectModalBkId(null)}>
               Cancel
             </Button>
             <Button
@@ -216,6 +218,23 @@ export function AdminPage() {
         <div className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-sm font-medium text-gray-700">
+              Target Student / Researcher
+            </label>
+            <select
+              value={targetUserId}
+              onChange={(e) => setTargetUserId(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm"
+            >
+              {allUsers.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.role}) — {u.department}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-gray-700">
               Select Safety Credential
             </label>
             <select
@@ -232,7 +251,7 @@ export function AdminPage() {
           </div>
 
           <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
-            <Button variant="outline" size="sm" onClick={() => setIsCertModalOpen(false)}>
+            <Button variant="ghost" size="sm" onClick={() => setIsCertModalOpen(false)}>
               Cancel
             </Button>
             <Button size="sm" onClick={handleGrantCert}>

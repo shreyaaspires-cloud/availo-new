@@ -6,7 +6,7 @@
 
 ## 1. Project Overview
 
-Colleges, laboratories, makerspaces, and research centers own high-value technical assets (CNC mills, electron microscopes, autoclaves, media studios) that remain underutilized. Standard booking systems fail because they ignore qualification prerequisites, condition tracking, anti-monopoly fairness caps, and tamper-evident audit trails.
+Colleges, laboratories, makerspaces, and research centers own high-value technical assets (CNC mills, electron microscopes, autoclaves, cleanrooms, media studios) that remain underutilized. Standard booking systems fail because they ignore qualification prerequisites, condition tracking, anti-monopoly fairness caps, and tamper-evident audit trails.
 
 **NexusShare** governs the complete **10-Step Custody Lifecycle**:
 1. **List Resource**: Owners configure specifications, weekly hourly caps, and required safety certifications.
@@ -22,39 +22,100 @@ Colleges, laboratories, makerspaces, and research centers own high-value technic
 
 ---
 
-## 2. Tech Stack
+## 2. Supported Equipment Categories
 
-- **Pure React SPA**: React 19, TypeScript 5.8+, Vite 8, React Router v7 (`react-router-dom`)
-- **Styling**: Tailwind CSS v4, Modern Laboratory Design System (Stitch MCP tokens)
-- **State Management**: Zustand 5 reactive in-memory lifecycle engine
-- **Icons**: Lucide React
-- **AI Integration**: Google Gemini 2.5 Flash for condition discrepancy and fairness priority reasoning
-- **Testing**: TestSprit framework
-- **Role-Based Access Control**: Strictly `USER` (Borrower) and `ADMIN` (Lab Director)
+NexusShare natively categorizes institutional equipment across 6 standardized disciplines:
+1. `MAKERSPACE_TOOL` (CNC Routers, 3D Printers, Laser Cutters)
+2. `LABORATORY` (Autoclaves, Spectrometers, Centrifuges)
+3. `TESTING_DEVICE` (Oscilloscopes, RF Chambers, Load Cells)
+4. `COMPUTE_WORKSTATION` (GPU Clusters, High-Performance Workstations)
+5. `MICROSCOPY_SUITE` (Cryo-TEM, Confocal Laser Scanning Microscopes)
+6. `CLEANROOM_EQUIPMENT` (Laminar Flow Benches, Photolithography Hoods)
 
 ---
 
-## 3. Getting Started
+## 3. Tech Stack & Clean Architecture
 
-### Prerequisites
-- Node.js >= 20.x
-- npm
+- **Pure React SPA (`react-frontend/`)**: React 19, TypeScript 5.8+, Vite 8, React Router v7 (`react-router-dom`)
+- **Next.js Frontend (`frontend/`)**: Next.js 16 (Webpack mode), TypeScript, Tailwind CSS
+- **Styling**: Tailwind CSS v4, Modern Laboratory Design System (Stitch MCP design tokens)
+- **State Management**: Zustand 5 reactive in-memory lifecycle engine
+- **Icons**: Lucide React
+- **AI Integration**: Google Gemini 2.5 Flash condition discrepancy analysis & fairness reasoning
+- **Testing**: TestSprit testing framework
 
-### Installation & Run (React SPA)
-```bash
-# Navigate to the React frontend
-cd react-frontend
+### Ponytail Clean-Code Principles
+- **Zero Dead Code**: Unused assets, template SVGs, and boilerplate CSS (`App.css`) removed.
+- **Strict Component APIs**: Button component strictly supports `primary | secondary | danger | ghost`.
+- **Pure React Idioms**: Dynamic date initializers run in lazy state callbacks without impure render-time evaluations.
+- **Robust Route Guards**: Unauthenticated sessions are automatically redirected to `/login`.
 
-# Install dependencies (already completed)
-npm install
+---
 
-# Start development server
-npm run dev
+## 4. Directory Structure
+
+```
+backend project/
+├── react-frontend/          # Primary Pure React 19 SPA (Vite + React Router v7)
+│   ├── src/
+│   │   ├── components/      # Stitch UI primitives (Button, Modal, Card, ToastContainer, etc.)
+│   │   ├── pages/           # All 10 custody lifecycle screens (Dashboard, AIAudit, Admin, etc.)
+│   │   ├── lib/             # Zustand store & deterministic mock data fixtures
+│   │   └── types/           # Strict TypeScript schemas and enums
+│   ├── vite.config.ts       # Vite 8 configuration with path aliases (@/)
+│   └── package.json
+├── frontend/                # Next.js 16 App Router implementation
+├── README.md                # Project documentation and lifecycle reference
+└── *.md                     # Architecture, PRD, and TRD specifications
 ```
 
 ---
 
-## 4. User Roles & Credentials (Demo Mode)
+## 5. Getting Started
 
-- **Student / Researcher**: `demo@yourapp.com` / `HackDemo@Hack` (Role: `USER`, Maya Lin)
-- **Lab Director / Owner**: `admin@yourapp.com` / `HackAdmin@Hack` (Role: `ADMIN`, Dr. Aris Thorne)
+### Prerequisites
+- **Node.js**: >= 20.x
+- **npm**: >= 10.x
+
+### Run Pure React SPA (Recommended)
+```bash
+# Navigate to the React frontend
+cd react-frontend
+
+# Install dependencies (if not already installed)
+npm install
+
+# Start development server (instant hot reload)
+npm run dev
+
+# Run production build
+npm run build
+
+# Run linting (oxlint — zero errors/warnings)
+npm run lint
+```
+
+### Run Next.js Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+npm run build
+```
+
+---
+
+## 6. User Roles & Credentials (Demo Mode)
+
+The interface features an interactive instant role-switcher in the navigation sidebar:
+
+- **Borrower / Student**: `demo@yourapp.com` / `HackDemo@Hack`
+  - Name: **Maya Lin**
+  - Department: Robotics & Mechanical Engineering
+  - Credentials: `LASER_SAFETY_L1`, `CNC_CERT`, `RAPID_PROTO_L2`
+  - Trust Score: **98 / 100**
+
+- **Lab Director / Admin**: `admin@yourapp.com` / `HackAdmin@Hack`
+  - Name: **Dr. Aris Thorne**
+  - Role: **ADMIN**
+  - Capabilities: Approve/reject requests, arbitrate waitlists, grant safety certifications
