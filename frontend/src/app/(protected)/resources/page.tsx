@@ -209,27 +209,30 @@ export default function ResourcesPage() {
                   alt={res.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                  <Badge variant={res.isAvailable ? 'success' : 'neutral'}>
-                    {res.isAvailable ? 'AVAILABLE' : 'IN USE'}
-                  </Badge>
-                  <Badge variant="info">
-                    {res.category.split('_').join(' ')}
-                  </Badge>
-                </div>
+                {/* Responsive Badge Overlay Bar (Prevents Collision Bug) */}
+                <div className="absolute top-3 inset-x-3 flex items-start justify-between gap-2 pointer-events-none">
+                  <div className="flex flex-wrap gap-1.5 max-w-[68%]">
+                    <Badge variant={res.isAvailable ? 'success' : 'neutral'}>
+                      {res.isAvailable ? 'AVAILABLE' : 'IN USE'}
+                    </Badge>
+                    <Badge variant="info">
+                      {res.category.split('_').join(' ')}
+                    </Badge>
+                  </div>
 
-                <div className="absolute top-3 right-3">
-                  <Badge
-                    variant={
-                      res.currentCondition === 'EXCELLENT'
-                        ? 'success'
-                        : res.currentCondition === 'GOOD'
-                        ? 'info'
-                        : 'warning'
-                    }
-                  >
-                    {res.currentCondition}
-                  </Badge>
+                  <div className="shrink-0">
+                    <Badge
+                      variant={
+                        res.currentCondition === 'EXCELLENT'
+                          ? 'success'
+                          : res.currentCondition === 'GOOD'
+                          ? 'info'
+                          : 'warning'
+                      }
+                    >
+                      {res.currentCondition}
+                    </Badge>
+                  </div>
                 </div>
               </div>
 
