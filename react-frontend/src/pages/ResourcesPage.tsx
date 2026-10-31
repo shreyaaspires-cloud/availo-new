@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { useAppStore } from '@/lib/store';
-import { Resource, ResourceCategory } from '@/types';
 import {
   Search,
-  CheckCircle2,
-  AlertTriangle,
   Plus,
-  CalendarPlus,
+  ShieldCheck,
+  AlertCircle,
+  Sparkles,
+  Upload,
+  X,
+  Image as ImageIcon,
 } from 'lucide-react';
+import { useAppStore } from '@/lib/store';
+import { Resource, ResourceCategory } from '@/types';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -25,7 +28,7 @@ export function ResourcesPage() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
-  // Booking Modal State
+  // Booking Modal State (Dynamic date initialization BUG-10 Fix)
   const [bookingModalRes, setBookingModalRes] = useState<Resource | null>(null);
   const [startDate, setStartDate] = useState(() => new Date(Date.now() + 86400000).toISOString().slice(0, 16));
   const [endDate, setEndDate] = useState(() => new Date(Date.now() + 86400000 + 3600000 * 3).toISOString().slice(0, 16));
@@ -38,13 +41,18 @@ export function ResourcesPage() {
   const [newResDesc, setNewResDesc] = useState('');
   const [newResLocation, setNewResLocation] = useState('');
   const [newResCerts, setNewResCerts] = useState('LASER_SAFETY_L1');
+  const [newResImageUrl, setNewResImageUrl] = useState('');
+  const [newResMaxHours, setNewResMaxHours] = useState('10');
 
-  const categories = [
+  // Complete 6 categories
+  const categories: Array<'ALL' | ResourceCategory> = [
     'ALL',
     'MAKERSPACE_TOOL',
     'LABORATORY',
     'TESTING_DEVICE',
     'COMPUTE_WORKSTATION',
+    'MICROSCOPY_SUITE',
+    'CLEANROOM_EQUIPMENT',
   ];
 
   const filteredResources = resources.filter((res) => {
@@ -72,27 +80,62 @@ export function ResourcesPage() {
     setPurpose('');
   };
 
+  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewResImageUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleAddResource = (e: React.FormEvent) => {
     e.preventDefault();
+    const fallbackImage =
+      'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80';
+
     addResource({
       name: newResName,
       category: newResCategory,
       description: newResDesc,
       location: newResLocation,
-      imageUrl:
-        'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
+      imageUrl: newResImageUrl.trim() || fallbackImage,
       currentCondition: 'EXCELLENT',
-      requiredQualifications: newResCerts.split(',').map((c) => c.trim()),
-      maxHoursPerWeek: 10,
+      requiredQualifications: newResCerts
+        .split(',')
+        .map((c) => c.trim())
+        .filter(Boolean),
+      maxHoursPerWeek: Number(newResMaxHours) || 10,
       isSupervised: false,
       requiresDeposit: false,
       isAvailable: true,
-      specs: { Standard: 'Calibrated' },
+      specs: { Standard: 'Calibrated & Certified' },
     });
+
     setIsAddModalOpen(false);
     setNewResName('');
     setNewResDesc('');
     setNewResLocation('');
+    setNewResImageUrl('');
+    setNewResCerts('LASER_SAFETY_L1');
+    setNewResMaxHours('10');
+  };
+
+  // Eligibility evaluation helper
+  const checkEligibility = (resource: Resource) => {
+    const missingCerts = resource.requiredQualifications.filter(
+      (cert) => !currentUser.qualifications.includes(cert)
+    );
+    const quotaExceeded =
+      currentUser.weeklyUsedHours >= currentUser.maxWeeklyHours;
+
+    return {
+      eligible: missingCerts.length === 0 && !quotaExceeded,
+      missingCerts,
+      quotaExceeded,
+    };
   };
 
   return (
@@ -103,39 +146,40 @@ export function ResourcesPage() {
             Institutional Resource Catalog
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Browse equipment with real-time automated eligibility badges (Step 2)
+            Browse laboratory, fabrication, and testing assets with real-time automated eligibility verification
           </p>
         </div>
 
         {currentUser.role === 'ADMIN' && (
           <Button
-            size="md"
-            icon={<Plus className="w-4 h-4 mr-1" />}
-            onClick={() => setIsAddModalOpen(false)}
+            size="sm"
+            onClick={() => setIsAddModalOpen(true)}
+            icon={<Plus className="w-4 h-4 mr-1.5" />}
           >
             List New Resource (Step 1)
           </Button>
         )}
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-gray-400" />
+      {/* Search and Category Filters */}
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="relative w-full md:w-96">
+          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search equipment or tools..."
+            placeholder="Search by equipment name, keywords, specs..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap cursor-pointer transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors cursor-pointer ${
                 selectedCategory === cat
                   ? 'bg-blue-600 text-white'
                   : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
@@ -147,124 +191,124 @@ export function ResourcesPage() {
         </div>
       </div>
 
+      {/* Grid of Equipment */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredResources.map((res) => {
-          const isEligible = res.requiredQualifications.every((req) =>
-            currentUser.qualifications.includes(req)
-          );
+          const { eligible, missingCerts, quotaExceeded } = checkEligibility(res);
 
           return (
-            <Card key={res.id} padding="none" hoverEffect className="overflow-hidden flex flex-col justify-between">
-              <div>
-                <div
-                  className="relative h-44 bg-gray-100 overflow-hidden cursor-pointer"
-                  onClick={() => navigate(`/resources/${res.id}`)}
-                >
-                  <img
-                    src={res.imageUrl}
-                    alt={res.name}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute top-3 right-3">
-                    <Badge
-                      variant={
-                        res.currentCondition === 'EXCELLENT'
-                          ? 'success'
-                          : res.currentCondition === 'GOOD'
-                          ? 'info'
-                          : 'warning'
-                      }
-                      size="sm"
-                      dot
-                    >
-                      {res.currentCondition}
-                    </Badge>
-                  </div>
-                  <div className="absolute bottom-3 left-3">
-                    <span className="font-mono text-[10px] bg-gray-900/80 backdrop-blur-xs text-white px-2 py-0.5 rounded-md uppercase font-semibold">
-                      {res.category.split('_').join(' ')}
-                    </span>
-                  </div>
+            <Card
+              key={res.id}
+              className="flex flex-col overflow-hidden hover:shadow-md transition-shadow group border border-gray-200"
+            >
+              <div className="relative h-48 w-full bg-gray-100 overflow-hidden">
+                <img
+                  src={res.imageUrl}
+                  alt={res.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                  <Badge variant={res.isAvailable ? 'success' : 'neutral'}>
+                    {res.isAvailable ? 'AVAILABLE' : 'IN USE'}
+                  </Badge>
+                  <Badge variant="info">
+                    {res.category.split('_').join(' ')}
+                  </Badge>
                 </div>
 
-                <div className="p-5 space-y-3">
-                  <div>
-                    <h3
-                      className="font-bold text-base text-gray-900 leading-snug cursor-pointer hover:text-blue-600 transition-colors"
-                      onClick={() => navigate(`/resources/${res.id}`)}
-                    >
-                      {res.name}
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-1">{res.location}</p>
-                  </div>
-
-                  <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
-                    {res.description}
-                  </p>
-
-                  <div className="pt-2 border-t border-gray-100 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-medium text-gray-500">
-                        Prerequisites:
-                      </span>
-                      {isEligible ? (
-                        <Badge variant="success" size="sm">
-                          <CheckCircle2 className="w-3 h-3 mr-1" />
-                          Eligible
-                        </Badge>
-                      ) : (
-                        <Badge variant="warning" size="sm">
-                          <AlertTriangle className="w-3 h-3 mr-1" />
-                          Missing Cert
-                        </Badge>
-                      )}
-                    </div>
-
-                    <div className="flex flex-wrap gap-1">
-                      {res.requiredQualifications.map((cert) => (
-                        <span
-                          key={cert}
-                          className="font-mono text-[10px] px-2 py-0.5 rounded bg-gray-100 text-gray-700"
-                        >
-                          {cert}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                <div className="absolute top-3 right-3">
+                  <Badge
+                    variant={
+                      res.currentCondition === 'EXCELLENT'
+                        ? 'success'
+                        : res.currentCondition === 'GOOD'
+                        ? 'info'
+                        : 'warning'
+                    }
+                  >
+                    {res.currentCondition}
+                  </Badge>
                 </div>
               </div>
 
-              <div className="p-5 pt-0">
-                <Button
-                  className="w-full"
-                  size="sm"
-                  variant={isEligible ? 'primary' : 'ghost'}
-                  disabled={!isEligible}
-                  onClick={() => setBookingModalRes(res)}
-                  icon={<CalendarPlus className="w-4 h-4 mr-1" />}
-                >
-                  {isEligible ? 'Requisition Time Slot (Step 3)' : 'Qualification Required'}
-                </Button>
+              <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div>
+                  <h3 className="font-semibold text-gray-900 text-base group-hover:text-blue-600 transition-colors">
+                    {res.name}
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                    <span>📍</span> {res.location}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-2.5 line-clamp-2 leading-relaxed">
+                    {res.description}
+                  </p>
+                </div>
+
+                {/* Eligibility Pill Banner */}
+                <div className="pt-3 border-t border-gray-100">
+                  <div className="flex items-center justify-between text-xs mb-2">
+                    <span className="font-medium text-gray-700">Access Eligibility:</span>
+                    {eligible ? (
+                      <span className="text-emerald-700 font-semibold flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Pre-Approved
+                      </span>
+                    ) : (
+                      <span className="text-amber-700 font-semibold flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-600" /> Prerequisite Gap
+                      </span>
+                    )}
+                  </div>
+
+                  {!eligible && (
+                    <div className="text-[11px] text-amber-600 bg-amber-50/60 p-2 rounded-lg border border-amber-100 mb-2">
+                      {missingCerts.length > 0 && (
+                        <p>Missing Credential: {missingCerts.join(', ')}</p>
+                      )}
+                      {quotaExceeded && <p>Weekly allocation cap reached ({currentUser.maxWeeklyHours}h)</p>}
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 pt-2">
+                    <Button
+                      size="sm"
+                      className="flex-1"
+                      variant={eligible ? 'primary' : 'ghost'}
+                      onClick={() => setBookingModalRes(res)}
+                    >
+                      Submit Requisition (Step 3)
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => navigate(`/resources/${res.id}`)}
+                    >
+                      Telemetry
+                    </Button>
+                  </div>
+                </div>
               </div>
             </Card>
           );
         })}
       </div>
 
+      {/* Booking Requisition Modal (Step 3) */}
       <Modal
-        isOpen={Boolean(bookingModalRes)}
+        isOpen={!!bookingModalRes}
         onClose={() => setBookingModalRes(null)}
-        title="Requisition Booking Slot (Step 3)"
-        subtitle={`Vetted automated quota verification for ${bookingModalRes?.name}`}
+        title={`Submit Custody Requisition: ${bookingModalRes?.name}`}
+        subtitle="Automated credential validation and rolling 7-day quota inspection"
       >
         {bookingModalRes && (
           <form onSubmit={handleBookingSubmit} className="space-y-4">
-            <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-xs space-y-1">
-              <span className="font-bold text-blue-900">Fair-Access Policy:</span>
-              <p className="text-blue-800">
-                Weekly Hour Cap: {bookingModalRes.maxHoursPerWeek} hrs. Your current usage:{' '}
-                {currentUser.weeklyUsedHours} / {currentUser.maxWeeklyHours} hrs.
-              </p>
+            <div className="bg-blue-50 border border-blue-100 rounded-xl p-3.5 flex items-start gap-3 text-xs text-blue-900">
+              <Sparkles className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-blue-950">Automated Verification Protocol (Step 4)</p>
+                <p className="mt-0.5 text-blue-700 leading-relaxed">
+                  Upon submission, the scheduler verifies user credentials, 7-day usage limits, and calculates your explainable Fair-Access score.
+                </p>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -286,15 +330,15 @@ export function ResourcesPage() {
 
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-gray-700">
-                Research / Educational Purpose
+                Project Purpose &amp; Materials Declaration
               </label>
               <textarea
                 value={purpose}
                 onChange={(e) => setPurpose(e.target.value)}
                 rows={3}
                 required
-                placeholder="Describe workpiece material, toolpaths, or analytical samples to be processed..."
-                className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                placeholder="Explain research goals, materials to be processed, and required safety protocols..."
+                className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -315,11 +359,12 @@ export function ResourcesPage() {
         )}
       </Modal>
 
+      {/* List New Resource Modal (Step 1) with Custom Image Upload & URL */}
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         title="List New Institutional Resource (Step 1)"
-        subtitle="Specify qualification prerequisites and weekly allocation caps"
+        subtitle="Specify equipment specifications, custom photos, and weekly allocation caps"
       >
         <form onSubmit={handleAddResource} className="space-y-4">
           <Input
@@ -330,35 +375,111 @@ export function ResourcesPage() {
             placeholder="e.g. Stratasys F370 3D Printer"
           />
 
-          <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-gray-700">Category</label>
-            <select
-              value={newResCategory}
-              onChange={(e) => setNewResCategory(e.target.value as ResourceCategory)}
-              className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm"
-            >
-              <option value="MAKERSPACE_TOOL">MAKERSPACE_TOOL</option>
-              <option value="LABORATORY">LABORATORY</option>
-              <option value="TESTING_DEVICE">TESTING_DEVICE</option>
-              <option value="COMPUTE_WORKSTATION">COMPUTE_WORKSTATION</option>
-            </select>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">Category</label>
+              <select
+                value={newResCategory}
+                onChange={(e) => setNewResCategory(e.target.value as ResourceCategory)}
+                className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm"
+              >
+                <option value="MAKERSPACE_TOOL">MAKERSPACE_TOOL</option>
+                <option value="LABORATORY">LABORATORY</option>
+                <option value="TESTING_DEVICE">TESTING_DEVICE</option>
+                <option value="COMPUTE_WORKSTATION">COMPUTE_WORKSTATION</option>
+                <option value="MICROSCOPY_SUITE">MICROSCOPY_SUITE</option>
+                <option value="CLEANROOM_EQUIPMENT">CLEANROOM_EQUIPMENT</option>
+              </select>
+            </div>
+
+            <Input
+              label="Weekly Hourly Cap (h)"
+              type="number"
+              value={newResMaxHours}
+              onChange={(e) => setNewResMaxHours(e.target.value)}
+              required
+              min="1"
+              max="168"
+            />
           </div>
 
-          <Input
-            label="Location"
-            value={newResLocation}
-            onChange={(e) => setNewResLocation(e.target.value)}
-            required
-            placeholder="e.g. Engineering Hall — Room 302"
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Input
+              label="Location"
+              value={newResLocation}
+              onChange={(e) => setNewResLocation(e.target.value)}
+              required
+              placeholder="e.g. Engineering Hall — Room 302"
+            />
 
-          <Input
-            label="Required Qualifications (comma-separated)"
-            value={newResCerts}
-            onChange={(e) => setNewResCerts(e.target.value)}
-            required
-            placeholder="LASER_SAFETY_L1, RAPID_PROTO_L2"
-          />
+            <Input
+              label="Required Qualifications"
+              value={newResCerts}
+              onChange={(e) => setNewResCerts(e.target.value)}
+              required
+              placeholder="LASER_SAFETY_L1, RAPID_PROTO_L2"
+            />
+          </div>
+
+          {/* Image Input Section (File Upload + URL + Live Preview) */}
+          <div className="space-y-2 border border-gray-100 bg-gray-50/70 p-3.5 rounded-xl">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium text-gray-900 flex items-center gap-1.5">
+                <ImageIcon className="w-4 h-4 text-blue-600" /> Resource Photo
+              </label>
+              {newResImageUrl && (
+                <button
+                  type="button"
+                  onClick={() => setNewResImageUrl('')}
+                  className="text-xs text-red-600 hover:text-red-700 flex items-center gap-0.5 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" /> Remove
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label className="flex items-center justify-center gap-2 px-3 py-2 bg-white border border-dashed border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
+                  <Upload className="w-3.5 h-3.5 text-gray-500" />
+                  <span>Choose local file...</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageFileUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              <div>
+                <input
+                  type="url"
+                  placeholder="Or paste image URL..."
+                  value={newResImageUrl.startsWith('data:') ? '' : newResImageUrl}
+                  onChange={(e) => setNewResImageUrl(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Live Preview Card */}
+            {newResImageUrl ? (
+              <div className="relative h-28 w-full rounded-lg overflow-hidden border border-gray-200 bg-gray-100 mt-2">
+                <img
+                  src={newResImageUrl}
+                  alt="Resource preview"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute bottom-1 right-2 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
+                  Live Preview
+                </div>
+              </div>
+            ) : (
+              <p className="text-[11px] text-gray-500">
+                Optional: Upload a photo or provide an image link. A default laboratory image will be used if left empty.
+              </p>
+            )}
+          </div>
 
           <div className="space-y-1.5">
             <label className="block text-sm font-medium text-gray-700">Description</label>
@@ -367,7 +488,7 @@ export function ResourcesPage() {
               onChange={(e) => setNewResDesc(e.target.value)}
               rows={2}
               required
-              placeholder="Technical specifications and acceptable materials..."
+              placeholder="Technical specifications, authorized materials, and safety guidelines..."
               className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm"
             />
           </div>
@@ -390,4 +511,3 @@ export function ResourcesPage() {
     </div>
   );
 }
-
