@@ -28,6 +28,19 @@ export function BookingsPage() {
 
   const [selectedAuditBk, setSelectedAuditBk] = useState<Booking | null>(null);
 
+  const handleCloseCheckInModal = () => {
+    handleCloseCheckInModal();
+    setCheckInCondition('GOOD');
+    setCheckInNotes('Workspace clean, safety guards mounted, zero visible wear.');
+  };
+
+  const handleCloseCheckOutModal = () => {
+    handleCloseCheckOutModal();
+    setCheckOutCondition('GOOD');
+    setCheckOutNotes('Machine surface cleaned, toolbits returned to drawer.');
+    setReportIncident(false);
+  };
+
   const handleCheckInSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!checkInModalBk) return;
@@ -189,7 +202,7 @@ export function BookingsPage() {
 
       <Modal
         isOpen={Boolean(checkInModalBk)}
-        onClose={() => setCheckInModalBk(null)}
+        onClose={handleCloseCheckInModal}
         title="Step 7: Physical Check-In & Initial Condition Log"
         subtitle={`Document pre-existing condition before taking custody of ${checkInModalBk?.resourceName}`}
       >
@@ -250,7 +263,7 @@ export function BookingsPage() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setCheckInModalBk(null)}
+                onClick={handleCloseCheckInModal}
               >
                 Cancel
               </Button>
@@ -264,7 +277,7 @@ export function BookingsPage() {
 
       <Modal
         isOpen={Boolean(checkOutModalBk)}
-        onClose={() => setCheckOutModalBk(null)}
+        onClose={handleCloseCheckOutModal}
         title="Step 8: Digital Return & Final Condition Sign-Off"
         subtitle={`Complete custody handoff for ${checkOutModalBk?.resourceName}`}
       >
@@ -324,7 +337,7 @@ export function BookingsPage() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setCheckOutModalBk(null)}
+                onClick={handleCloseCheckOutModal}
               >
                 Cancel
               </Button>

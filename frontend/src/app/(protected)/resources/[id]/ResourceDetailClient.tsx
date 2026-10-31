@@ -7,6 +7,7 @@ import {
   CalendarPlus,
   CheckCircle2,
   AlertTriangle,
+  AlertCircle,
   ArrowLeft,
   MapPin,
 } from 'lucide-react';
@@ -22,9 +23,18 @@ export function ResourceDetailClient({ resource }: { resource: Resource }) {
   const requestBooking = useAppStore((s) => s.requestBooking);
 
   const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [startDate, setStartDate] = useState('2026-11-04T09:00');
-  const [endDate, setEndDate] = useState('2026-11-04T12:00');
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date(Date.now() + 86400000);
+    d.setHours(9, 0, 0, 0);
+    return d.toISOString().slice(0, 16);
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const d = new Date(Date.now() + 86400000);
+    d.setHours(12, 0, 0, 0);
+    return d.toISOString().slice(0, 16);
+  });
   const [purpose, setPurpose] = useState('');
+  const [bookingError, setBookingError] = useState<string | null>(null);
 
   const isEligible = resource.requiredQualifications.every((req) =>
     currentUser.qualifications.includes(req)
@@ -79,7 +89,7 @@ export function ResourceDetailClient({ resource }: { resource: Resource }) {
           </div>
           <div className="absolute bottom-4 left-4">
             <span className="font-mono text-xs bg-gray-950/80 backdrop-blur-xs text-white px-3 py-1 rounded-lg uppercase font-semibold">
-              {resource.category.replace('_', ' ')}
+              {resource.category.split('_').join(' ')}
             </span>
           </div>
         </div>
@@ -98,7 +108,7 @@ export function ResourceDetailClient({ resource }: { resource: Resource }) {
               size="lg"
               variant={isEligible ? 'primary' : 'ghost'}
               disabled={!isEligible}
-              onClick={() => setIsBookingOpen(true)}
+              onClick={() => { setBookingError(null); setIsBookingOpen(true); }}
               icon={<CalendarPlus className="w-5 h-5 mr-1" />}
             >
               {isEligible ? 'Requisition Time Slot (Step 3)' : 'Missing Qualification'}
@@ -162,11 +172,17 @@ export function ResourceDetailClient({ resource }: { resource: Resource }) {
       {/* Booking Modal */}
       <Modal
         isOpen={isBookingOpen}
-        onClose={() => setIsBookingOpen(false)}
+        onClose={() => { setBookingError(null); setIsBookingOpen(false); }}
         title="Requisition Time Slot (Step 3)"
         subtitle={`Vetted request for ${resource.name}`}
       >
         <form onSubmit={handleBookingSubmit} className="space-y-4">
+            {bookingError && (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                <span>{bookingError}</span>
+              </div>
+            )}
           <div className="grid grid-cols-2 gap-3">
             <Input
               label="Start Time"
@@ -201,7 +217,7 @@ export function ResourceDetailClient({ resource }: { resource: Resource }) {
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => setIsBookingOpen(false)}
+              onClick={() => { setBookingError(null); setIsBookingOpen(false); }}
             >
               Cancel
             </Button>

@@ -157,7 +157,7 @@ export default function DashboardPage() {
               You currently hold custody of: {activeCustodyBookings[0].resourceName}
             </h3>
             <p className="text-xs text-blue-100 max-w-xl">
-              Custody commenced at {new Date(activeCustodyBookings[0].checkedInAt || '').toLocaleTimeString()}.
+              Custody commenced at {activeCustodyBookings[0].checkedInAt ? new Date(activeCustodyBookings[0].checkedInAt).toLocaleTimeString() : 'Check-in time unavailable'}.
               When your session finishes, execute digital return check-out to log post-use condition.
             </p>
           </div>

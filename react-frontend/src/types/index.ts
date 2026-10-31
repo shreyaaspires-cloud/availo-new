@@ -12,9 +12,7 @@ export interface User {
 
 export type ResourceCategory =
   | 'LABORATORY'
-  | 'CLASSROOM'
   | 'MAKERSPACE_TOOL'
-  | 'CAMERA_AV'
   | 'TESTING_DEVICE'
   | 'COMPUTE_WORKSTATION'
   | 'MICROSCOPY_SUITE'

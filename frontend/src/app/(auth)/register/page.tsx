@@ -2,11 +2,12 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAppStore } from '@/lib/store';
+import { DEMO_USERS } from '@/lib/mockData';
 import { FlaskConical, ArrowRight } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import Link from 'next/link';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -19,7 +20,37 @@ export default function RegisterPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    showToast('Registration submitted for institutional safety validation.');
+
+    // Field non-empty check (BUG-07 Fix)
+    if (!name.trim() || !email.trim() || !department.trim() || !password) {
+      showToast('All fields are required', 'error');
+      return;
+    }
+
+    // Email regex validation (BUG-07 Fix)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      showToast('Please enter a valid institutional email address', 'error');
+      return;
+    }
+
+    // Password length validation (BUG-07 Fix)
+    if (password.length < 8) {
+      showToast('Password must be at least 8 characters long', 'error');
+      return;
+    }
+
+    // Duplicate email check against existing mock users (BUG-07 Fix)
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingUser = Object.values(DEMO_USERS).find(
+      (u) => u.email.toLowerCase() === normalizedEmail
+    );
+    if (existingUser) {
+      showToast('Email already registered', 'error');
+      return;
+    }
+
+    showToast('Registration submitted! Institutional account activated.');
     router.push('/login');
   };
 
@@ -52,11 +83,11 @@ export default function RegisterPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            placeholder="netid@university.edu"
+            placeholder="name@university.edu"
           />
 
           <Input
-            label="Department / Lab Group"
+            label="Department / Lab Division"
             type="text"
             value={department}
             onChange={(e) => setDepartment(e.target.value)}
@@ -65,7 +96,7 @@ export default function RegisterPage() {
           />
 
           <Input
-            label="Password"
+            label="Password (min. 8 characters)"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -73,20 +104,15 @@ export default function RegisterPage() {
             placeholder="••••••••"
           />
 
-          <Button
-            type="submit"
-            className="w-full mt-2"
-            size="lg"
-            icon={<ArrowRight className="w-4 h-4 ml-1" />}
-          >
-            Submit for Certification Check
+          <Button type="submit" className="w-full" size="lg" icon={<ArrowRight className="w-4 h-4 ml-1" />}>
+            Complete Registration
           </Button>
         </form>
 
-        <div className="pt-4 border-t border-gray-100 text-center text-xs text-gray-500">
-          <span>Already registered? </span>
-          <Link href="/login" className="text-blue-600 hover:underline font-semibold">
-            Sign in
+        <div className="text-center text-xs text-gray-500">
+          Already have an authorized access profile?{' '}
+          <Link href="/login" className="font-semibold text-blue-600 hover:text-blue-700">
+            Sign In
           </Link>
         </div>
       </div>

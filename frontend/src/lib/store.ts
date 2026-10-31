@@ -2,6 +2,9 @@ import { create } from 'zustand';
 import { User, Resource, Booking, Incident, AuditLog, ConditionRating } from '@/types';
 import { DEMO_USERS, INITIAL_RESOURCES, INITIAL_BOOKINGS, INITIAL_INCIDENTS, INITIAL_AUDIT_LOGS } from '@/lib/mockData';
 
+// Module-level toast timer to prevent race conditions (BUG-01 Fix)
+let toastTimer: ReturnType<typeof setTimeout> | null = null;
+
 interface AppState {
   // Auth state
   currentUser: User;
@@ -53,24 +56,11 @@ interface AppState {
 export const useAppStore = create<AppState>((set, get) => ({
   currentUser: DEMO_USERS.USER,
   allUsers: Object.values(DEMO_USERS),
-  resources: INITIAL_RESOURCES,
-  bookings: INITIAL_BOOKINGS,
-  incidents: INITIAL_INCIDENTS,
-  auditLogs: INITIAL_AUDIT_LOGS,
-  toast: null,
-
-  showToast: (message, type = 'success') => {
-    set({ toast: { message, type } });
-    setTimeout(() => {
-      set({ toast: null });
-    }, 4000);
-  },
-
-  clearToast: () => set({ toast: null }),
 
   switchUser: (role) => {
-    set({ currentUser: DEMO_USERS[role] });
-    get().showToast(`Switched active session to ${DEMO_USERS[role].name} (${role})`, 'info');
+    const targetUser = DEMO_USERS[role] || DEMO_USERS.USER;
+    set({ currentUser: targetUser });
+    get().showToast(`Switched active user view to ${targetUser.name} (${targetUser.role})`);
   },
 
   updateUserQualifications: (userId, newCerts) => {
@@ -91,28 +81,31 @@ export const useAppStore = create<AppState>((set, get) => ({
     get().addAuditLog(
       'QUALIFICATION_UPDATED',
       `Granted certification privileges for ${targetName}: ${newCerts.join(', ')}`,
-      'User Credential Engine'
+      'Identity & Clearance Registry'
     );
-    get().showToast(`Credentials updated for ${targetName}: ${newCerts.join(', ')}`);
+    get().showToast(`Clearances updated for ${targetName}`);
   },
 
-  addResource: (newResData) => {
+  resources: INITIAL_RESOURCES,
+
+  addResource: (resData) => {
     const id = `res-${Date.now()}`;
-    const newRes: Resource = { ...newResData, id };
+    const newRes: Resource = { ...resData, id };
     set((state) => ({ resources: [newRes, ...state.resources] }));
-    get().addAuditLog(
-      'RESOURCE_LISTED',
-      `Admin listed new institutional resource: ${newRes.name} under ${newRes.category}`,
-      newRes.name
-    );
-    get().showToast(`Resource "${newRes.name}" created and published.`);
+    get().addAuditLog('RESOURCE_PUBLISHED', `Resource "${newRes.name}" added to catalog`, newRes.name);
+    get().showToast(`Resource "${newRes.name}" successfully published.`);
   },
+
+  bookings: INITIAL_BOOKINGS,
+  incidents: INITIAL_INCIDENTS,
+  auditLogs: INITIAL_AUDIT_LOGS,
 
   requestBooking: (data) => {
     const user = get().currentUser;
     const resource = get().resources.find((r) => r.id === data.resourceId);
 
     if (!resource) {
+      get().showToast('Resource unavailable', 'error');
       return { success: false, message: 'Resource not found' };
     }
 
@@ -130,7 +123,18 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     const start = new Date(data.startTime).getTime();
     const end = new Date(data.endTime).getTime();
-    const hours = Math.max(1, Math.round((end - start) / (1000 * 60 * 60)));
+    const durationMs = end - start;
+
+    // Minimum 1 hour duration policy with explicit rejection (BUG-04 Fix)
+    if (isNaN(durationMs) || durationMs < 60 * 60 * 1000) {
+      get().showToast('Minimum booking duration is 1 hour', 'error');
+      return {
+        success: false,
+        message: 'Minimum booking duration is 1 hour',
+      };
+    }
+
+    const hours = durationMs / (1000 * 60 * 60);
 
     if (user.weeklyUsedHours + hours > user.maxWeeklyHours) {
       get().showToast(`Fair-Access Quota Exceeded (Max ${user.maxWeeklyHours}h/week)`, 'error');
@@ -170,7 +174,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     get().addAuditLog(
       'BOOKING_REQUISITION',
-      `Requisition submitted for ${hours}h by ${user.name}. Automated eligibility verified.`,
+      `Requisition submitted for ${hours.toFixed(1)}h by ${user.name}. Automated eligibility verified.`,
       resource.name
     );
 
@@ -213,20 +217,37 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   waitlistBooking: (bookingId) => {
+    const currentBookings = get().bookings;
+    const target = currentBookings.find((b) => b.id === bookingId);
+    if (!target) return;
+
+    // Calculate queue depth for the same resource and overlapping time window (BUG-02 Fix)
+    const targetStart = new Date(target.startTime).getTime();
+    const targetEnd = new Date(target.endTime).getTime();
+
+    const existingWaitlisted = currentBookings.filter(
+      (b) =>
+        b.id !== bookingId &&
+        b.resourceId === target.resourceId &&
+        b.status === 'WAITLISTED' &&
+        new Date(b.startTime).getTime() < targetEnd &&
+        new Date(b.endTime).getTime() > targetStart
+    ).length;
+
+    const waitlistPosition = existingWaitlisted + 1;
+
     set((state) => ({
       bookings: state.bookings.map((b) =>
-        b.id === bookingId ? { ...b, status: 'WAITLISTED', waitlistPosition: 1 } : b
+        b.id === bookingId ? { ...b, status: 'WAITLISTED', waitlistPosition } : b
       ),
     }));
-    const b = get().bookings.find((item) => item.id === bookingId);
-    if (b) {
-      get().addAuditLog(
-        'WAITLIST_PRIORITY_RECALCULATED',
-        `Booking placed in Fair-Access Waitlist priority queue.`,
-        b.resourceName
-      );
-      get().showToast(`Booking #${bookingId} moved to fair-access waitlist.`);
-    }
+
+    get().addAuditLog(
+      'WAITLIST_PRIORITY_RECALCULATED',
+      `Booking placed in Fair-Access Waitlist priority queue at position #${waitlistPosition}.`,
+      target.resourceName
+    );
+    get().showToast(`Booking #${bookingId} moved to fair-access waitlist (Position #${waitlistPosition}).`);
   },
 
   checkInBooking: (bookingId, condition, notes, photoUrl) => {
@@ -287,6 +308,12 @@ export const useAppStore = create<AppState>((set, get) => ({
       );
 
       if (condition === 'DAMAGED' || condition === 'FAIR' || flagIncident) {
+        // Dynamic Gemini discrepancy summary reflecting actual condition & notes (BUG-13 Fix)
+        const pre = b.checkInCondition || 'GOOD';
+        const aiSummary = `Condition changed from ${pre} (check-in) to ${condition} (return). ${
+          condition === 'DAMAGED' ? 'Immediate inspection required.' : 'Minor wear noted — monitoring recommended.'
+        } User notes: "${notes || 'None provided'}".`;
+
         get().reportIncident({
           bookingId: b.id,
           resourceId: b.resourceId,
@@ -295,10 +322,9 @@ export const useAppStore = create<AppState>((set, get) => ({
           title: `Post-use discrepancy on ${b.resourceName}`,
           description: notes || 'Discrepancy noted during digital return inspection.',
           severity: condition === 'DAMAGED' ? 'HIGH' : 'MEDIUM',
-          preCondition: `Logged at Check-In: ${b.checkInCondition || 'GOOD'}. ${b.checkInNotes || ''}`,
+          preCondition: `Logged at Check-In: ${pre}. ${b.checkInNotes || ''}`,
           postCondition: `Logged at Return: ${condition}. ${notes}`,
-          aiDiscrepancySummary:
-            'Gemini 2.5 Flash identified wear divergence between pre-check photo and return report. Review recommended.',
+          aiDiscrepancySummary: aiSummary,
         });
       }
 
@@ -341,7 +367,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   addAuditLog: (action, details, resourceName) => {
-    const randomHex = Math.random().toString(16).substring(2, 10);
+    // 32-character hexadecimal hash matching seed format (BUG-05 Fix)
+    const hex32 = Array.from({ length: 4 }, () =>
+      Math.random().toString(16).substring(2, 10).padStart(8, '0')
+    ).join('');
+
     const newLog: AuditLog = {
       id: `aud-${Date.now()}`,
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
@@ -350,8 +380,30 @@ export const useAppStore = create<AppState>((set, get) => ({
       actorRole: get().currentUser.role,
       resourceName,
       details,
-      hash: `0x${randomHex}${Date.now().toString(16)}`,
+      hash: `0x${hex32}`,
     };
     set((state) => ({ auditLogs: [newLog, ...state.auditLogs] }));
+  },
+
+  toast: null,
+
+  showToast: (message, type = 'success') => {
+    // Clear any pending timer to eliminate timer race (BUG-01 Fix)
+    if (toastTimer) {
+      clearTimeout(toastTimer);
+    }
+    set({ toast: { message, type } });
+    toastTimer = setTimeout(() => {
+      set({ toast: null });
+      toastTimer = null;
+    }, 4000);
+  },
+
+  clearToast: () => {
+    if (toastTimer) {
+      clearTimeout(toastTimer);
+      toastTimer = null;
+    }
+    set({ toast: null });
   },
 }));

@@ -14,8 +14,7 @@ import { Modal } from '@/components/ui/Modal';
 
 export function AdminPage() {
   const bookings = useAppStore((s) => s.bookings);
-  const currentUser = useAppStore((s) => s.currentUser);
-  const approveBooking = useAppStore((s) => s.approveBooking);
+    const approveBooking = useAppStore((s) => s.approveBooking);
   const rejectBooking = useAppStore((s) => s.rejectBooking);
   const waitlistBooking = useAppStore((s) => s.waitlistBooking);
   const updateUserQualifications = useAppStore((s) => s.updateUserQualifications);
@@ -40,9 +39,14 @@ export function AdminPage() {
     'ALL_ACCESS_SUPERVISOR',
   ];
 
-  const handleGrantCert = () => {
-    const updated = Array.from(new Set([...currentUser.qualifications, selectedCert]));
-    updateUserQualifications(currentUser.id, updated);
+    const handleGrantCert = () => {
+    const targetUser = allUsers.find((u) => u.id === targetUserId);
+    if (!targetUser) {
+      useAppStore.getState().showToast('Target user not found', 'error');
+      return;
+    }
+    const updated = Array.from(new Set([...targetUser.qualifications, selectedCert]));
+    updateUserQualifications(targetUserId, updated);
     setIsCertModalOpen(false);
   };
 

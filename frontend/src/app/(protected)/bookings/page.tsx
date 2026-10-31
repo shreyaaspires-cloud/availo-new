@@ -33,6 +33,19 @@ export default function BookingsPage() {
   // Audit Drawer State (Step 10)
   const [selectedAuditBk, setSelectedAuditBk] = useState<Booking | null>(null);
 
+  const handleCloseCheckInModal = () => {
+    handleCloseCheckInModal();
+    setCheckInCondition('GOOD');
+    setCheckInNotes('Workspace clean, safety guards mounted, zero visible wear.');
+  };
+
+  const handleCloseCheckOutModal = () => {
+    handleCloseCheckOutModal();
+    setCheckOutCondition('GOOD');
+    setCheckOutNotes('Machine surface cleaned, toolbits returned to drawer.');
+    setReportIncident(false);
+  };
+
   const handleCheckInSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!checkInModalBk) return;
@@ -203,7 +216,7 @@ export default function BookingsPage() {
       {/* Step 7: Check-In & Initial Condition Documentation Modal */}
       <Modal
         isOpen={Boolean(checkInModalBk)}
-        onClose={() => setCheckInModalBk(null)}
+        onClose={handleCloseCheckInModal}
         title="Step 7: Physical Check-In & Initial Condition Log"
         subtitle={`Document pre-existing condition before taking custody of ${checkInModalBk?.resourceName}`}
       >
@@ -264,7 +277,7 @@ export default function BookingsPage() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setCheckInModalBk(null)}
+                onClick={handleCloseCheckInModal}
               >
                 Cancel
               </Button>
@@ -279,7 +292,7 @@ export default function BookingsPage() {
       {/* Step 8: Return Check-Out Modal */}
       <Modal
         isOpen={Boolean(checkOutModalBk)}
-        onClose={() => setCheckOutModalBk(null)}
+        onClose={handleCloseCheckOutModal}
         title="Step 8: Digital Return & Final Condition Sign-Off"
         subtitle={`Complete custody handoff for ${checkOutModalBk?.resourceName}`}
       >
@@ -339,7 +352,7 @@ export default function BookingsPage() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setCheckOutModalBk(null)}
+                onClick={handleCloseCheckOutModal}
               >
                 Cancel
               </Button>

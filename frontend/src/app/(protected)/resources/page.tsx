@@ -35,6 +35,7 @@ export default function ResourcesPage() {
   const [startDate, setStartDate] = useState(() => new Date(Date.now() + 86400000).toISOString().slice(0, 16));
   const [endDate, setEndDate] = useState(() => new Date(Date.now() + 86400000 + 3600000 * 3).toISOString().slice(0, 16));
   const [purpose, setPurpose] = useState('');
+  const [bookingError, setBookingError] = useState<string | null>(null);
 
   // Add Resource Modal State (Admin only)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -69,8 +70,9 @@ export default function ResourcesPage() {
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!bookingModalRes) return;
+    setBookingError(null);
 
-    requestBooking({
+    const result = requestBooking({
       resourceId: bookingModalRes.id,
       resourceName: bookingModalRes.name,
       category: bookingModalRes.category,
@@ -78,8 +80,15 @@ export default function ResourcesPage() {
       endTime: endDate,
       purpose,
     });
+
+    if (result && !result.success) {
+      setBookingError(result.message);
+      return;
+    }
+
     setBookingModalRes(null);
     setPurpose('');
+    setBookingError(null);
   };
 
   const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -278,7 +287,7 @@ export default function ResourcesPage() {
                       size="sm"
                       className="flex-1"
                       variant={eligible ? 'primary' : 'ghost'}
-                      onClick={() => setBookingModalRes(res)}
+                      onClick={() => { setBookingError(null); setBookingModalRes(res); }}
                     >
                       Submit Requisition (Step 3)
                     </Button>
@@ -300,12 +309,18 @@ export default function ResourcesPage() {
       {/* Booking Requisition Modal (Step 3) */}
       <Modal
         isOpen={!!bookingModalRes}
-        onClose={() => setBookingModalRes(null)}
+        onClose={() => { setBookingError(null); setBookingModalRes(null); }}
         title={`Submit Custody Requisition: ${bookingModalRes?.name}`}
         subtitle="Automated credential validation and rolling 7-day quota inspection"
       >
         {bookingModalRes && (
           <form onSubmit={handleBookingSubmit} className="space-y-4">
+            {bookingError && (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                <span>{bookingError}</span>
+              </div>
+            )}
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-3.5 flex items-start gap-3 text-xs text-blue-900">
               <Sparkles className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
               <div>
@@ -352,7 +367,7 @@ export default function ResourcesPage() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setBookingModalRes(null)}
+                onClick={() => { setBookingError(null); setBookingModalRes(null); }}
               >
                 Cancel
               </Button>

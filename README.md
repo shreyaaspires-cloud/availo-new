@@ -1,4 +1,4 @@
-# NexusShare — Institutional & Community Resource Sharing Platform
+﻿# NexusShare ΓÇö Institutional & Community Resource Sharing Platform
 
 > **A trusted, auditable platform that helps institutions and communities safely share underused spaces, equipment, and technical resources with automated eligibility verification, fair-access allocation, and AI-assisted condition documentation.**
 
@@ -56,17 +56,17 @@ NexusShare natively categorizes institutional equipment across 6 standardized di
 
 ```
 backend project/
-├── react-frontend/          # Primary Pure React 19 SPA (Vite + React Router v7)
-│   ├── src/
-│   │   ├── components/      # Stitch UI primitives (Button, Modal, Card, ToastContainer, etc.)
-│   │   ├── pages/           # All 10 custody lifecycle screens (Dashboard, AIAudit, Admin, etc.)
-│   │   ├── lib/             # Zustand store & deterministic mock data fixtures
-│   │   └── types/           # Strict TypeScript schemas and enums
-│   ├── vite.config.ts       # Vite 8 configuration with path aliases (@/)
-│   └── package.json
-├── frontend/                # Next.js 16 App Router implementation
-├── README.md                # Project documentation and lifecycle reference
-└── *.md                     # Architecture, PRD, and TRD specifications
+Γö£ΓöÇΓöÇ react-frontend/          # Primary Pure React 19 SPA (Vite + React Router v7)
+Γöé   Γö£ΓöÇΓöÇ src/
+Γöé   Γöé   Γö£ΓöÇΓöÇ components/      # Stitch UI primitives (Button, Modal, Card, ToastContainer, etc.)
+Γöé   Γöé   Γö£ΓöÇΓöÇ pages/           # All 10 custody lifecycle screens (Dashboard, AIAudit, Admin, etc.)
+Γöé   Γöé   Γö£ΓöÇΓöÇ lib/             # Zustand store & deterministic mock data fixtures
+Γöé   Γöé   ΓööΓöÇΓöÇ types/           # Strict TypeScript schemas and enums
+Γöé   Γö£ΓöÇΓöÇ vite.config.ts       # Vite 8 configuration with path aliases (@/)
+Γöé   ΓööΓöÇΓöÇ package.json
+Γö£ΓöÇΓöÇ frontend/                # Next.js 16 App Router implementation
+Γö£ΓöÇΓöÇ README.md                # Project documentation and lifecycle reference
+ΓööΓöÇΓöÇ *.md                     # Architecture, PRD, and TRD specifications
 ```
 
 ---
@@ -91,7 +91,7 @@ npm run dev
 # Run production build
 npm run build
 
-# Run linting (oxlint — zero errors/warnings)
+# Run linting (oxlint ΓÇö zero errors/warnings)
 npm run lint
 ```
 

@@ -42,10 +42,13 @@ export default function AdminPage() {
     'ALL_ACCESS_SUPERVISOR',
   ];
 
-  const handleGrantCert = () => {
-    const target = allUsers.find((u) => u.id === targetUserId);
-    if (!target) return;
-    const updated = Array.from(new Set([...target.qualifications, selectedCert]));
+    const handleGrantCert = () => {
+    const targetUser = allUsers.find((u) => u.id === targetUserId);
+    if (!targetUser) {
+      useAppStore.getState().showToast('Target user not found', 'error');
+      return;
+    }
+    const updated = Array.from(new Set([...targetUser.qualifications, selectedCert]));
     updateUserQualifications(targetUserId, updated);
     setIsCertModalOpen(false);
   };
