@@ -102,13 +102,13 @@ export function AIAuditPage() {
               <span className="font-bold text-xs text-gray-700 uppercase">
                 Step 8 Return Inspection Stream
               </span>
-              <span className="font-mono text-xs text-amber-600 font-bold">ANALYZED (11:45 AM)</span>
+              <span className="font-mono text-xs text-amber-600 font-bold">READY TO AUDIT</span>
             </div>
             <p className="text-xs text-gray-600">
               Optical aperture shows particulate smear. Beam scattering divergence detected.
             </p>
             <div className="h-1.5 w-full bg-amber-100 rounded-full overflow-hidden">
-              <div className="h-full bg-amber-500 w-3/4 animate-pulse" />
+              <div className="h-full bg-amber-500 w-0" />
             </div>
           </div>
         </div>

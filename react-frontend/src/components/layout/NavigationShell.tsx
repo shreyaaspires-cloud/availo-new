@@ -12,7 +12,6 @@ import {
   FlaskConical,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
-import { ToastContainer } from '@/components/ui/ToastContainer';
 
 export function NavigationShell({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -33,8 +32,7 @@ export function NavigationShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row text-gray-900 font-sans">
-      <ToastContainer />
-
+      
       <aside className="w-full lg:w-64 bg-white border-r border-gray-200 shrink-0 flex flex-col justify-between">
         <div>
           {/* Header Brand */}

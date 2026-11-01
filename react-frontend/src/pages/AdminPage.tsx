@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import {
   CheckCircle2,
@@ -19,6 +19,7 @@ export function AdminPage() {
   const waitlistBooking = useAppStore((s) => s.waitlistBooking);
   const updateUserQualifications = useAppStore((s) => s.updateUserQualifications);
   const allUsers = useAppStore((s) => s.allUsers);
+  const showToast = useAppStore((s) => s.showToast);
 
   const pendingBookings = bookings.filter((b) => b.status === 'PENDING');
   const waitlistedBookings = bookings.filter((b) => b.status === 'WAITLISTED');
@@ -42,7 +43,7 @@ export function AdminPage() {
     const handleGrantCert = () => {
     const targetUser = allUsers.find((u) => u.id === targetUserId);
     if (!targetUser) {
-      useAppStore.getState().showToast('Target user not found', 'error');
+      showToast('Target user not found', 'error');
       return;
     }
     const updated = Array.from(new Set([...targetUser.qualifications, selectedCert]));

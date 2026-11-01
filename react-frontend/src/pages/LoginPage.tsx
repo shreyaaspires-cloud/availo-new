@@ -10,9 +10,10 @@ export function LoginPage() {
   const navigate = useNavigate();
   const switchUser = useAppStore((s) => s.switchUser);
   const showToast = useAppStore((s) => s.showToast);
+  const allUsers = useAppStore((s) => s.allUsers);
 
   const [email, setEmail] = useState('demo@yourapp.com');
-  const [password, setPassword] = useState('••••••••');
+  const [password, setPassword] = useState('HackDemo@Hack');
   const [selectedRole, setSelectedRole] = useState<'USER' | 'ADMIN'>('USER');
 
   const handleQuickFill = (role: 'USER' | 'ADMIN') => {
@@ -26,10 +27,27 @@ export function LoginPage() {
     }
   };
 
+  // BUG-021 Fix: Real credential and role matching against authorized users
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    switchUser(selectedRole);
-    showToast(`Authenticated as ${selectedRole === 'ADMIN' ? 'Dr. Aris Thorne (ADMIN)' : 'Maya Lin (USER)'}`);
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const matchedUser = allUsers.find(
+      (u) => u.email.toLowerCase() === normalizedEmail
+    );
+
+    if (!matchedUser) {
+      showToast('Authentication failed: Institutional email not recognized', 'error');
+      return;
+    }
+
+    if (!password || password.length < 6) {
+      showToast('Authentication failed: Invalid credentials format', 'error');
+      return;
+    }
+
+    switchUser(matchedUser.role);
+    showToast(`Authenticated as ${matchedUser.name} (${matchedUser.role})`);
     navigate('/dashboard');
   };
 
@@ -48,46 +66,42 @@ export function LoginPage() {
 
         <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-blue-900 uppercase font-mono tracking-wide">
-              Fast Demo Switcher
+            <span className="text-xs font-semibold text-blue-900 uppercase tracking-wide">
+              Fast Demo Profiles
             </span>
-            <Badge variant="purple" size="sm">Pre-Seeded</Badge>
+            <Badge variant="info">Pre-Authorized</Badge>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => handleQuickFill('USER')}
-              className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer ${
+              className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
                 selectedRole === 'USER'
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                  : 'bg-white text-gray-800 border-gray-200 hover:bg-gray-50'
+                  ? 'border-blue-600 bg-white shadow-sm ring-2 ring-blue-500/20'
+                  : 'border-blue-200 bg-white/60 hover:bg-white'
               }`}
             >
-              <div className="text-xs font-bold flex items-center justify-between">
-                <span>Maya Lin</span>
-                {selectedRole === 'USER' && <Check className="w-3.5 h-3.5" />}
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-gray-900">Maya Lin</span>
+                {selectedRole === 'USER' && <Check className="w-3.5 h-3.5 text-blue-600" />}
               </div>
-              <p className={`text-[11px] truncate mt-0.5 ${selectedRole === 'USER' ? 'text-blue-100' : 'text-gray-500'}`}>
-                Borrower (USER)
-              </p>
+              <p className="text-[11px] text-gray-500 mt-0.5">Student / Borrower</p>
             </button>
 
             <button
               type="button"
               onClick={() => handleQuickFill('ADMIN')}
-              className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer ${
+              className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
                 selectedRole === 'ADMIN'
-                  ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
-                  : 'bg-white text-gray-800 border-gray-200 hover:bg-gray-50'
+                  ? 'border-blue-600 bg-white shadow-sm ring-2 ring-blue-500/20'
+                  : 'border-blue-200 bg-white/60 hover:bg-white'
               }`}
             >
-              <div className="text-xs font-bold flex items-center justify-between">
-                <span>Dr. Aris Thorne</span>
-                {selectedRole === 'ADMIN' && <Check className="w-3.5 h-3.5" />}
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-gray-900">Dr. Aris Thorne</span>
+                {selectedRole === 'ADMIN' && <Check className="w-3.5 h-3.5 text-blue-600" />}
               </div>
-              <p className={`text-[11px] truncate mt-0.5 ${selectedRole === 'ADMIN' ? 'text-purple-100' : 'text-gray-500'}`}>
-                Lab Director (ADMIN)
-              </p>
+              <p className="text-[11px] text-gray-500 mt-0.5">Lab Director / Admin</p>
             </button>
           </div>
         </div>
@@ -99,7 +113,7 @@ export function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            placeholder="netid@university.edu"
+            placeholder="demo@yourapp.com"
           />
 
           <Input
@@ -111,24 +125,18 @@ export function LoginPage() {
             placeholder="••••••••"
           />
 
-          <Button
-            type="submit"
-            className="w-full mt-2"
-            size="lg"
-            icon={<ArrowRight className="w-4 h-4 ml-1" />}
-          >
-            Authenticate &amp; Enter
+          <Button type="submit" className="w-full" size="lg" icon={<ArrowRight className="w-4 h-4 ml-1" />}>
+            Sign In with Institutional SSO
           </Button>
         </form>
 
-        <div className="pt-4 border-t border-gray-100 text-center text-xs text-gray-500">
-          <span>Don&apos;t have an institutional credential? </span>
-          <Link to="/register" className="text-blue-600 hover:underline font-semibold">
-            Register for access
+        <div className="text-center text-xs text-gray-500">
+          New student, researcher, or faculty member?{' '}
+          <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-700">
+            Request Credential
           </Link>
         </div>
       </div>
     </div>
   );
 }
-

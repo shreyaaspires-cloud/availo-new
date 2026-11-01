@@ -24,8 +24,16 @@ export function ResourceDetailPage() {
   const resource = resources.find((r) => r.id === id);
 
   const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [startDate, setStartDate] = useState('2026-11-04T09:00');
-  const [endDate, setEndDate] = useState('2026-11-04T12:00');
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date(Date.now() + 86400000);
+    d.setHours(9, 0, 0, 0);
+    return d.toISOString().slice(0, 16);
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const d = new Date(Date.now() + 86400000);
+    d.setHours(12, 0, 0, 0);
+    return d.toISOString().slice(0, 16);
+  });
   const [purpose, setPurpose] = useState('');
   const [bookingError, setBookingError] = useState<string | null>(null);
 

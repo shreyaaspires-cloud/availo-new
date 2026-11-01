@@ -29,13 +29,13 @@ export function BookingsPage() {
   const [selectedAuditBk, setSelectedAuditBk] = useState<Booking | null>(null);
 
   const handleCloseCheckInModal = () => {
-    handleCloseCheckInModal();
+    setCheckInModalBk(null);
     setCheckInCondition('GOOD');
     setCheckInNotes('Workspace clean, safety guards mounted, zero visible wear.');
   };
 
   const handleCloseCheckOutModal = () => {
-    handleCloseCheckOutModal();
+    setCheckOutModalBk(null);
     setCheckOutCondition('GOOD');
     setCheckOutNotes('Machine surface cleaned, toolbits returned to drawer.');
     setReportIncident(false);

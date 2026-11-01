@@ -17,6 +17,7 @@ import { Modal } from '@/components/ui/Modal';
 export default function AdminPage() {
   const bookings = useAppStore((s) => s.bookings);
   const allUsers = useAppStore((s) => s.allUsers);
+  const showToast = useAppStore((s) => s.showToast);
   const approveBooking = useAppStore((s) => s.approveBooking);
   const rejectBooking = useAppStore((s) => s.rejectBooking);
   const waitlistBooking = useAppStore((s) => s.waitlistBooking);
@@ -45,7 +46,7 @@ export default function AdminPage() {
     const handleGrantCert = () => {
     const targetUser = allUsers.find((u) => u.id === targetUserId);
     if (!targetUser) {
-      useAppStore.getState().showToast('Target user not found', 'error');
+      showToast('Target user not found', 'error');
       return;
     }
     const updated = Array.from(new Set([...targetUser.qualifications, selectedCert]));

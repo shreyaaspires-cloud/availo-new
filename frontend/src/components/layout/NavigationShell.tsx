@@ -15,7 +15,6 @@ import {
   FlaskConical,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
-import { ToastContainer } from '@/components/ui/ToastContainer';
 
 function SidebarNav() {
   const pathname = usePathname();
@@ -147,8 +146,7 @@ export function NavigationShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row text-gray-900 font-sans">
       {/* Toast Alert stack */}
-      <ToastContainer />
-
+      
       <Suspense fallback={<div className="w-full lg:w-64 bg-white border-r border-gray-200 shrink-0 h-screen" />}>
         <SidebarNav />
       </Suspense>
