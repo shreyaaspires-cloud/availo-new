@@ -3,6 +3,8 @@ import {
   Sparkles,
   Play,
   Zap,
+  AlertTriangle,
+  CheckCircle2,
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -114,35 +116,54 @@ export function AIAuditPage() {
         </div>
 
         {analysisResult && (
-          <div className="p-5 rounded-xl bg-gray-950 text-gray-100 font-mono text-xs space-y-3">
-            <div className="flex items-center justify-between border-b border-gray-800 pb-2">
-              <span className="text-purple-400 font-bold flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5" />
-                GEMINI 2.5 FLASH TELEMETRY EVALUATION
-              </span>
-              <span className="text-gray-400">Confidence: {analysisResult.confidenceScore}%</span>
-            </div>
-
-            <div className="space-y-2 font-sans text-xs">
-              <div>
-                <span className="text-purple-300 font-mono font-bold block mb-0.5">
-                  DISCREPANCY DELTA:
+          <div className="space-y-4">
+            {analysisResult.discrepancyDetected ? (
+              <div className="p-4 rounded-xl bg-amber-50 border border-amber-300 flex items-center justify-between text-amber-900 font-semibold text-xs">
+                <span className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600" />
+                  PHYSICAL DISCREPANCY DETECTED: Return condition differs from baseline pre-check.
                 </span>
-                <p className="text-gray-200">{analysisResult.divergenceMetric}</p>
+                <span className="px-2 py-0.5 bg-amber-200 text-amber-900 rounded font-mono">
+                  ACTION REQUIRED
+                </span>
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 flex items-center gap-2 text-emerald-900 font-semibold text-xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                CONGRUENCE CONFIRMED: Resource returned in acceptable baseline operational condition.
+              </div>
+            )}
+
+            <div className="p-5 rounded-xl bg-gray-950 text-gray-100 font-mono text-xs space-y-3">
+              <div className="flex items-center justify-between border-b border-gray-800 pb-2">
+                <span className="text-purple-400 font-bold flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5" />
+                  GEMINI 2.5 FLASH TELEMETRY EVALUATION
+                </span>
+                <span className="text-gray-400">Confidence: {analysisResult.confidenceScore}%</span>
               </div>
 
-              <div>
-                <span className="text-emerald-300 font-mono font-bold block mb-0.5">
-                  RECOMMENDED ACTION:
-                </span>
-                <p className="text-gray-200">{analysisResult.maintenanceAction}</p>
-              </div>
+              <div className="space-y-2 font-sans text-xs">
+                <div>
+                  <span className="text-purple-300 font-mono font-bold block mb-0.5">
+                    DISCREPANCY DELTA:
+                  </span>
+                  <p className="text-gray-200">{analysisResult.divergenceMetric}</p>
+                </div>
 
-              <div>
-                <span className="text-blue-300 font-mono font-bold block mb-0.5">
-                  FAIR-ACCESS ALLOCATION REASONING:
-                </span>
-                <p className="text-gray-200">{analysisResult.fairnessPriorityReasoning}</p>
+                <div>
+                  <span className="text-emerald-300 font-mono font-bold block mb-0.5">
+                    RECOMMENDED ACTION:
+                  </span>
+                  <p className="text-gray-200">{analysisResult.maintenanceAction}</p>
+                </div>
+
+                <div>
+                  <span className="text-blue-300 font-mono font-bold block mb-0.5">
+                    FAIR-ACCESS ALLOCATION REASONING:
+                  </span>
+                  <p className="text-gray-200">{analysisResult.fairnessPriorityReasoning}</p>
+                </div>
               </div>
             </div>
           </div>

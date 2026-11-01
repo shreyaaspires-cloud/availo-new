@@ -12,6 +12,14 @@ import { Badge } from '@/components/ui/Badge';
 export default function ProfilePage() {
   const currentUser = useAppStore((s) => s.currentUser);
 
+  if (!currentUser) {
+    return (
+      <div className="p-8 text-center text-gray-500">
+        Please sign in to view your profile.
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 lg:p-8 space-y-8 max-w-4xl mx-auto">
       <div>

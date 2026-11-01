@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppStore } from '@/lib/store';
-import { DEMO_USERS } from '@/lib/mockData';
 import { FlaskConical, ArrowRight } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -9,6 +8,8 @@ import { Button } from '@/components/ui/Button';
 export function RegisterPage() {
   const navigate = useNavigate();
   const showToast = useAppStore((s) => s.showToast);
+  const registerUser = useAppStore((s) => s.registerUser);
+  const allUsers = useAppStore((s) => s.allUsers);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -37,9 +38,9 @@ export function RegisterPage() {
       return;
     }
 
-    // Duplicate email check against existing mock users (BUG-07 Fix)
+    // Duplicate email check against existing mock and registered users (FIX-13)
     const normalizedEmail = email.trim().toLowerCase();
-    const existingUser = Object.values(DEMO_USERS).find(
+    const existingUser = allUsers.find(
       (u) => u.email.toLowerCase() === normalizedEmail
     );
     if (existingUser) {
@@ -47,7 +48,7 @@ export function RegisterPage() {
       return;
     }
 
-    showToast('Registration submitted! Institutional account activated.');
+    registerUser(name.trim(), normalizedEmail, department.trim(), password);
     navigate('/login');
   };
 

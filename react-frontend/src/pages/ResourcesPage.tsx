@@ -18,6 +18,11 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { useNavigate } from 'react-router-dom';
 
+function toLocalDT(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export function ResourcesPage() {
   const navigate = useNavigate();
   const resources = useAppStore((s) => s.resources);
@@ -28,10 +33,10 @@ export function ResourcesPage() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
-  // Booking Modal State (Dynamic date initialization BUG-10 Fix)
+  // Booking Modal State (Dynamic local date initialization FIX-18)
   const [bookingModalRes, setBookingModalRes] = useState<Resource | null>(null);
-  const [startDate, setStartDate] = useState(() => new Date(Date.now() + 86400000).toISOString().slice(0, 16));
-  const [endDate, setEndDate] = useState(() => new Date(Date.now() + 86400000 + 3600000 * 3).toISOString().slice(0, 16));
+  const [startDate, setStartDate] = useState(() => toLocalDT(new Date(Date.now() + 86400000)));
+  const [endDate, setEndDate] = useState(() => toLocalDT(new Date(Date.now() + 86400000 + 3600000 * 3)));
   const [purpose, setPurpose] = useState('');
   const [bookingError, setBookingError] = useState<string | null>(null);
 
@@ -134,6 +139,13 @@ export function ResourcesPage() {
 
   // Eligibility evaluation helper
   const checkEligibility = (resource: Resource) => {
+    if (!currentUser) {
+      return {
+        eligible: false,
+        missingCerts: resource.requiredQualifications,
+        quotaExceeded: false,
+      };
+    }
     const missingCerts = resource.requiredQualifications.filter(
       (cert) => !currentUser.qualifications.includes(cert)
     );
@@ -159,7 +171,7 @@ export function ResourcesPage() {
           </p>
         </div>
 
-        {currentUser.role === 'ADMIN' && (
+        {currentUser?.role === 'ADMIN' && (
           <Button
             size="sm"
             onClick={() => setIsAddModalOpen(true)}
@@ -276,7 +288,7 @@ export function ResourcesPage() {
                       {missingCerts.length > 0 && (
                         <p>Missing Credential: {missingCerts.join(', ')}</p>
                       )}
-                      {quotaExceeded && <p>Weekly allocation cap reached ({currentUser.maxWeeklyHours}h)</p>}
+                      {quotaExceeded && <p>Weekly allocation cap reached ({currentUser?.maxWeeklyHours ?? 0}h)</p>}
                     </div>
                   )}
 

@@ -20,13 +20,19 @@ export function DashboardPage() {
   const incidents = useAppStore((s) => s.incidents);
   const auditLogs = useAppStore((s) => s.auditLogs);
 
-  const activeCustodyBookings = bookings.filter((b) => b.status === 'CHECKED_IN');
+  const visibleBookings = currentUser?.role === 'ADMIN'
+    ? bookings
+    : bookings.filter((b) => b.userId === currentUser?.id);
+
+  const activeCustodyBookings = visibleBookings.filter((b) => b.status === 'CHECKED_IN');
   const openIncidents = incidents.filter((i) => i.status !== 'RESOLVED');
 
-  const quotaPercent = Math.min(
-    100,
-    Math.round((currentUser.weeklyUsedHours / currentUser.maxWeeklyHours) * 100)
-  );
+  const quotaPercent = currentUser
+    ? Math.min(
+        100,
+        Math.round((currentUser.weeklyUsedHours / currentUser.maxWeeklyHours) * 100)
+      )
+    : 0;
 
   return (
     <div className="p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
@@ -36,12 +42,12 @@ export function DashboardPage() {
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
               Institutional Operations Command
             </h1>
-            <Badge variant={currentUser.role === 'ADMIN' ? 'purple' : 'info'}>
-              {currentUser.role}
+            <Badge variant={currentUser?.role === 'ADMIN' ? 'purple' : 'info'}>
+              {currentUser?.role ?? 'GUEST'}
             </Badge>
           </div>
           <p className="text-sm text-gray-500 mt-1">
-            Logged in as <span className="font-semibold text-gray-700">{currentUser.name}</span> ({currentUser.department})
+            Logged in as <span className="font-semibold text-gray-700">{currentUser?.name ?? 'Guest'}</span> ({currentUser?.department ?? 'General Access'})
           </p>
         </div>
 
@@ -88,7 +94,7 @@ export function DashboardPage() {
             </div>
           </div>
           <p className="text-3xl font-extrabold text-gray-900 mt-2">
-            {(currentUser.maxWeeklyHours - currentUser.weeklyUsedHours).toFixed(1)}
+            {currentUser ? (currentUser.maxWeeklyHours - currentUser.weeklyUsedHours).toFixed(1) : '0.0'}
             <span className="text-sm font-normal text-gray-500 ml-1">hrs</span>
           </p>
           <div className="w-full bg-gray-100 rounded-full h-1.5 mt-3 overflow-hidden">
@@ -111,7 +117,7 @@ export function DashboardPage() {
             </div>
           </div>
           <p className="text-3xl font-extrabold text-gray-900 mt-2">
-            {currentUser.trustScore}
+            {currentUser?.trustScore ?? 0}
             <span className="text-sm font-normal text-gray-500 ml-1">/ 100</span>
           </p>
           <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">

@@ -16,7 +16,13 @@ import { Badge } from '@/components/ui/Badge';
 export function NavigationShell({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const currentUser = useAppStore((s) => s.currentUser);
+  const allUsers = useAppStore((s) => s.allUsers);
   const switchUser = useAppStore((s) => s.switchUser);
+
+  const userAccount = allUsers.find((u) => u.role === 'USER');
+  const adminAccount = allUsers.find((u) => u.role === 'ADMIN');
+  const userName = userAccount ? userAccount.name.split(' ')[0] : 'Maya';
+  const adminName = adminAccount ? adminAccount.name.split(' ')[0] : 'Aris';
 
   const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -24,7 +30,7 @@ export function NavigationShell({ children }: { children: React.ReactNode }) {
     { name: 'Custody & Bookings', href: '/bookings', icon: CalendarCheck },
     { name: 'Incident Logs', href: '/incidents', icon: AlertOctagon },
     { name: 'Gemini AI Auditor', href: '/ai-audit', icon: Sparkles },
-    ...(currentUser.role === 'ADMIN'
+    ...(currentUser?.role === 'ADMIN'
       ? [{ name: 'Admin Command', href: '/admin', icon: ShieldCheck }]
       : []),
     { name: 'My Profile', href: '/profile', icon: User },
@@ -58,20 +64,20 @@ export function NavigationShell({ children }: { children: React.ReactNode }) {
               <span className="text-[11px] font-mono uppercase font-semibold text-blue-900">
                 Active Session
               </span>
-              <Badge variant={currentUser.role === 'ADMIN' ? 'purple' : 'info'} size="sm">
-                {currentUser.role}
+              <Badge variant={currentUser?.role === 'ADMIN' ? 'purple' : 'info'} size="sm">
+                {currentUser?.role ?? 'GUEST'}
               </Badge>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-blue-200 text-blue-800 flex items-center justify-center font-bold text-xs">
-                {currentUser.name.charAt(0)}
+                {currentUser?.name ? currentUser.name.charAt(0) : 'G'}
               </div>
               <div className="overflow-hidden">
                 <p className="text-xs font-semibold text-gray-900 truncate">
-                  {currentUser.name}
+                  {currentUser?.name ?? 'Guest User'}
                 </p>
                 <p className="text-[11px] text-gray-500 truncate">
-                  {currentUser.department}
+                  {currentUser?.department ?? 'General Access'}
                 </p>
               </div>
             </div>
@@ -80,22 +86,22 @@ export function NavigationShell({ children }: { children: React.ReactNode }) {
               <button
                 onClick={() => switchUser('USER')}
                 className={`px-2 py-1 text-[11px] font-medium rounded-lg transition-colors cursor-pointer text-center ${
-                  currentUser.role === 'USER'
+                  currentUser?.role === 'USER'
                     ? 'bg-blue-600 text-white'
                     : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
                 }`}
               >
-                User (Maya)
+                User ({userName})
               </button>
               <button
                 onClick={() => switchUser('ADMIN')}
                 className={`px-2 py-1 text-[11px] font-medium rounded-lg transition-colors cursor-pointer text-center ${
-                  currentUser.role === 'ADMIN'
+                  currentUser?.role === 'ADMIN'
                     ? 'bg-purple-600 text-white'
                     : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
                 }`}
               >
-                Admin (Aris)
+                Admin ({adminName})
               </button>
             </div>
           </div>

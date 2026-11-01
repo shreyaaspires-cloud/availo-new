@@ -14,8 +14,14 @@ import { Modal } from '@/components/ui/Modal';
 
 export function BookingsPage() {
   const bookings = useAppStore((s) => s.bookings);
+  const currentUser = useAppStore((s) => s.currentUser);
   const checkInBooking = useAppStore((s) => s.checkInBooking);
   const checkOutBooking = useAppStore((s) => s.checkOutBooking);
+
+  // Filter bookings: ADMIN sees all, regular USER sees only their own (FIX-17)
+  const visibleBookings = currentUser?.role === 'ADMIN'
+    ? bookings
+    : bookings.filter((b) => b.userId === currentUser?.id);
 
   const [checkInModalBk, setCheckInModalBk] = useState<Booking | null>(null);
   const [checkInCondition, setCheckInCondition] = useState<ConditionRating>('GOOD');
@@ -46,6 +52,8 @@ export function BookingsPage() {
     if (!checkInModalBk) return;
     checkInBooking(checkInModalBk.id, checkInCondition, checkInNotes);
     setCheckInModalBk(null);
+    setCheckInCondition('GOOD');
+    setCheckInNotes('Workspace clean, safety guards mounted, zero visible wear.');
   };
 
   const handleCheckOutSubmit = (e: React.FormEvent) => {
@@ -59,6 +67,9 @@ export function BookingsPage() {
       reportIncident
     );
     setCheckOutModalBk(null);
+    setCheckOutCondition('GOOD');
+    setCheckOutNotes('Machine surface cleaned, toolbits returned to drawer.');
+    setReportIncident(false);
   };
 
   return (
@@ -75,7 +86,7 @@ export function BookingsPage() {
       </div>
 
       <div className="space-y-4">
-        {bookings.map((bk) => (
+        {visibleBookings.map((bk) => (
           <Card key={bk.id} padding="md" hoverEffect className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
               <div className="flex items-center gap-3">

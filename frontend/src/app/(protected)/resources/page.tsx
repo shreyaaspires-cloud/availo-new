@@ -136,6 +136,13 @@ export default function ResourcesPage() {
 
   // Eligibility evaluation helper
   const checkEligibility = (resource: Resource) => {
+    if (!currentUser) {
+      return {
+        eligible: false,
+        missingCerts: resource.requiredQualifications,
+        quotaExceeded: false,
+      };
+    }
     const missingCerts = resource.requiredQualifications.filter(
       (cert) => !currentUser.qualifications.includes(cert)
     );
@@ -161,7 +168,7 @@ export default function ResourcesPage() {
           </p>
         </div>
 
-        {currentUser.role === 'ADMIN' && (
+        {currentUser?.role === 'ADMIN' && (
           <Button
             size="sm"
             onClick={() => setIsAddModalOpen(true)}
@@ -278,7 +285,7 @@ export default function ResourcesPage() {
                       {missingCerts.length > 0 && (
                         <p>Missing Credential: {missingCerts.join(', ')}</p>
                       )}
-                      {quotaExceeded && <p>Weekly allocation cap reached ({currentUser.maxWeeklyHours}h)</p>}
+                      {quotaExceeded && <p>Weekly allocation cap reached ({currentUser?.maxWeeklyHours ?? 0}h)</p>}
                     </div>
                   )}
 

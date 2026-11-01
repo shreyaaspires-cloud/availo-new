@@ -18,6 +18,11 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import Link from 'next/link';
 
+function toLocalDT(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export function ResourceDetailClient({ resource }: { resource: Resource }) {
   const currentUser = useAppStore((s) => s.currentUser);
   const requestBooking = useAppStore((s) => s.requestBooking);
@@ -26,23 +31,24 @@ export function ResourceDetailClient({ resource }: { resource: Resource }) {
   const [startDate, setStartDate] = useState(() => {
     const d = new Date(Date.now() + 86400000);
     d.setHours(9, 0, 0, 0);
-    return d.toISOString().slice(0, 16);
+    return toLocalDT(d);
   });
   const [endDate, setEndDate] = useState(() => {
     const d = new Date(Date.now() + 86400000);
     d.setHours(12, 0, 0, 0);
-    return d.toISOString().slice(0, 16);
+    return toLocalDT(d);
   });
   const [purpose, setPurpose] = useState('');
   const [bookingError, setBookingError] = useState<string | null>(null);
 
-  const isEligible = resource.requiredQualifications.every((req) =>
-    currentUser.qualifications.includes(req)
-  );
+  const isEligible = currentUser
+    ? resource.requiredQualifications.every((req) => currentUser.qualifications.includes(req))
+    : false;
 
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    requestBooking({
+    setBookingError(null);
+    const result = requestBooking({
       resourceId: resource.id,
       resourceName: resource.name,
       category: resource.category,
@@ -50,6 +56,12 @@ export function ResourceDetailClient({ resource }: { resource: Resource }) {
       endTime: endDate,
       purpose,
     });
+
+    if (result && !result.success) {
+      setBookingError(result.message);
+      return;
+    }
+
     setIsBookingOpen(false);
     setPurpose('');
   };

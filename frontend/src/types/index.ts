@@ -2,6 +2,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  password?: string;
   department: string;
   role: 'USER' | 'ADMIN';
   qualifications: string[]; // e.g. ['LASER_SAFETY_L1', 'CNC_CERT', 'CLEANROOM_ISO5']

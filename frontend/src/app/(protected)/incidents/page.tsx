@@ -92,7 +92,7 @@ export default function IncidentsPage() {
                 Filed at {inc.reportedAt}
               </span>
 
-              {currentUser.role === 'ADMIN' && inc.status !== 'RESOLVED' && (
+              {currentUser?.role === 'ADMIN' && inc.status !== 'RESOLVED' && (
                 <Button
                   size="sm"
                   variant="primary"

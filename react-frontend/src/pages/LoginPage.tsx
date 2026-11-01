@@ -8,7 +8,6 @@ import { Badge } from '@/components/ui/Badge';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const switchUser = useAppStore((s) => s.switchUser);
   const showToast = useAppStore((s) => s.showToast);
   const allUsers = useAppStore((s) => s.allUsers);
 
@@ -41,12 +40,18 @@ export function LoginPage() {
       return;
     }
 
+    if (matchedUser.password && matchedUser.password !== password) {
+      showToast('Authentication failed: Incorrect password', 'error');
+      return;
+    }
+
     if (!password || password.length < 6) {
       showToast('Authentication failed: Invalid credentials format', 'error');
       return;
     }
 
-    switchUser(matchedUser.role);
+    // Set the specific matched user in store
+    useAppStore.setState({ currentUser: matchedUser });
     showToast(`Authenticated as ${matchedUser.name} (${matchedUser.role})`);
     navigate('/dashboard');
   };

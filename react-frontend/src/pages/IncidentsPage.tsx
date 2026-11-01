@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 export function IncidentsPage() {
   const incidents = useAppStore((s) => s.incidents);
   const currentUser = useAppStore((s) => s.currentUser);
+  const investigateIncident = useAppStore((s) => s.investigateIncident);
   const resolveIncident = useAppStore((s) => s.resolveIncident);
 
   return (
@@ -85,16 +86,27 @@ export function IncidentsPage() {
                 Filed at {inc.reportedAt}
               </span>
 
-              {currentUser.role === 'ADMIN' && inc.status !== 'RESOLVED' && (
-                <Button
-                  size="sm"
-                  variant="primary"
-                  className="bg-emerald-600 hover:bg-emerald-700"
-                  icon={<CheckCircle2 className="w-4 h-4 mr-1" />}
-                  onClick={() => resolveIncident(inc.id)}
-                >
-                  Resolve &amp; Clear Resource
-                </Button>
+              {currentUser?.role === 'ADMIN' && inc.status !== 'RESOLVED' && (
+                <div className="flex items-center gap-2">
+                  {inc.status === 'OPEN' && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => investigateIncident(inc.id)}
+                    >
+                      Mark Investigating
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                    icon={<CheckCircle2 className="w-4 h-4 mr-1" />}
+                    onClick={() => resolveIncident(inc.id)}
+                  >
+                    Resolve &amp; Clear Resource
+                  </Button>
+                </div>
               )}
             </div>
           </Card>

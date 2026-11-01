@@ -23,6 +23,17 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <NavigationShell>{children}</NavigationShell>;
 }
 
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const currentUser = useAppStore((s) => s.currentUser);
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+  if (currentUser.role !== 'ADMIN') {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <NavigationShell>{children}</NavigationShell>;
+}
+
 export function App() {
   return (
     <BrowserRouter>
@@ -86,9 +97,9 @@ export function App() {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute>
+            <AdminRoute>
               <AdminPage />
-            </ProtectedRoute>
+            </AdminRoute>
           }
         />
         <Route
